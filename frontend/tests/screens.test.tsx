@@ -183,6 +183,8 @@ describe('Pantallas migradas', () => {
     );
     render(<Pomodoro user={user} onLogout={vi.fn()} />);
     await screen.findByRole('button', { name: 'Continuar la misma tarea' });
+    expect(screen.getByText('Un momento de The Office')).toBeTruthy();
+    expect(screen.getByRole('img').getAttribute('src')).toMatch(/\/gifs\/the-office\/.+\.gif$/);
     fireEvent.click(screen.getByRole('button', { name: 'Continuar la misma tarea' }));
     await waitFor(() => expect(tasks[0].cycles_invested).toBe(1));
     await screen.findByRole('button', { name: 'Cambiar de tarea' });
@@ -337,6 +339,9 @@ describe('Componentes conservados', () => {
     render(<TimerSettingsMenu settings={DEFAULT_SETTINGS} onSave={onSave} disabled={false} />);
     fireEvent.click(screen.getByRole('button'));
     const dialog = await screen.findByRole('dialog');
+    expect(within(dialog).getAllByRole('radio')).toHaveLength(10);
+    fireEvent.click(within(dialog).getByRole('radio', { name: 'Rosado' }));
+    expect(document.documentElement.dataset.color).toBe('pink');
     fireEvent.submit(dialog.querySelector('form')!);
     await waitFor(() => expect(onSave).toHaveBeenCalled());
     cleanup();

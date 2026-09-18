@@ -38,6 +38,7 @@ import TimerSettingsMenu from '@/modules/focus/components/timer-settings';
 import DailyRoutines from '@/modules/focus/components/daily-routines';
 import TimerPanel from '@/modules/focus/components/timer-panel';
 import FocusTimer from '@/modules/focus/components/focus-timer';
+import OfficeGif from '@/modules/focus/components/office-gif';
 import ThemeToggle from '@/components/ui/theme-toggle';
 import TaskList, { type TaskTab } from '@/modules/focus/components/task-list';
 import TagEditor from '@/modules/focus/components/tag-editor';
@@ -577,7 +578,7 @@ export default function Pomodoro({
             aria-modal="true"
             aria-labelledby="decision-title"
             aria-describedby="decision-description"
-            className="panel w-full max-w-md p-8 text-center"
+            className="panel max-h-[calc(100dvh-2.5rem)] w-full max-w-md overflow-y-auto p-8 text-center"
           >
             <span className="mx-auto flex h-14 w-14 items-center justify-center rounded-full bg-[var(--accent-soft)] text-[var(--accent-text)]">
               <CheckCheck size={27} />
@@ -592,6 +593,7 @@ export default function Pomodoro({
               {activeTask?.title} · Se registrará un ciclo. ¿Quieres continuar, terminar o cambiar
               de tarea?
             </p>
+            <OfficeGif />
             {error && (
               <p role="alert" className="mt-4 text-sm text-[var(--error-text)]">
                 {error}

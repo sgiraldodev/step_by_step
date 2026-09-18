@@ -1,5 +1,6 @@
 'use client';
 import { Button } from '@/components/ui/button';
+import ColorPicker from '@/components/ui/color-picker';
 
 import { useEffect, useRef, useState, type FormEvent } from 'react';
 import { Settings, X } from 'lucide-react';
@@ -64,7 +65,7 @@ export default function TimerSettingsMenu({
         ref={dialog}
         aria-labelledby="settings-title"
         aria-describedby="settings-description"
-        className="m-auto w-[calc(100%-40px)] max-w-md rounded-2xl border border-[var(--border)] bg-[var(--surface)] p-6 text-[var(--ink)] shadow-xl backdrop:bg-slate-900/35 backdrop:backdrop-blur-sm"
+        className="m-auto max-h-[calc(100dvh-40px)] w-[calc(100%-40px)] max-w-md overflow-y-auto rounded-2xl border border-[var(--border)] bg-[var(--surface)] p-6 text-[var(--ink)] shadow-xl backdrop:bg-slate-900/35 backdrop:backdrop-blur-sm"
         onClick={(e) => {
           if (e.target === e.currentTarget) {
             const rect = e.currentTarget.getBoundingClientRect();
@@ -80,7 +81,7 @@ export default function TimerSettingsMenu({
       >
         <div className="flex items-center justify-between gap-3">
           <h2 id="settings-title" className="text-xl font-semibold">
-            Tu ritmo de trabajo
+            Tu configuración
           </h2>
           <button
             aria-label="Cerrar configuración"
@@ -135,6 +136,7 @@ export default function TimerSettingsMenu({
             </div>
             <p className="mt-1 text-xs text-[var(--muted)]">De 1 a 60 minutos</p>
           </div>
+          <ColorPicker />
           {error && (
             <p role="alert" className="text-sm text-[var(--error-text)]">
               {error}

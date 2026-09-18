@@ -1,5 +1,6 @@
 import type { Metadata } from 'next';
 import './globals.css';
+import { APP_COLOR_INIT_SCRIPT } from '@/components/ui/app-colors';
 
 export const metadata: Metadata = {
   title: 'Step by step · Tu espacio de enfoque',
@@ -11,7 +12,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
       <head>
         <script
           dangerouslySetInnerHTML={{
-            __html: `try{const t=localStorage.getItem('step-theme');document.documentElement.dataset.theme=t==='dark'||(t!=='light'&&matchMedia('(prefers-color-scheme: dark)').matches)?'dark':'light'}catch{document.documentElement.dataset.theme=matchMedia('(prefers-color-scheme: dark)').matches?'dark':'light'}`,
+            __html: `try{const t=localStorage.getItem('step-theme');document.documentElement.dataset.theme=t==='dark'||(t!=='light'&&matchMedia('(prefers-color-scheme: dark)').matches)?'dark':'light'}catch{document.documentElement.dataset.theme=matchMedia('(prefers-color-scheme: dark)').matches?'dark':'light'};${APP_COLOR_INIT_SCRIPT}`,
           }}
         />
       </head>

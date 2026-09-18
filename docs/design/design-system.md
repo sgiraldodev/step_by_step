@@ -246,6 +246,16 @@ import {Button} from '@/components/ui/button';
 
 Import: `@/components/ui/theme-toggle`. Sin props. Alterna temas mediante dataset.theme y conserva la preferencia `step-theme`. Incluye nombre accesible; se puede operar con teclado. Ejemplo: `<ThemeToggle/>`.
 
+### ColorPicker
+
+Propósito: personalizar el color de la aplicación desde Configuración. Import: `@/components/ui/color-picker`. Sin props; ejemplo: `<ColorPicker />`. Disponible también en `/design-system`.
+
+Ofrece diez opciones: azul (original), verde, turquesa, celeste, naranja, rosado, lila, violeta, rojo y gris. Cada opción tiene nombre y muestra visual; los radios nativos permiten selección con teclado y muestran foco y selección. El cambio es inmediato e independiente del guardado de los tiempos del temporizador. No se asignan colores por edad o género.
+
+La preferencia se guarda en `step-color` en el navegador y se aplica antes de pintar mediante el layout. Valores desconocidos y almacenamiento no disponible usan azul al iniciar. Si falla el guardado, el color seleccionado sigue aplicado durante la visita y se comunica la limitación. El modo claro/oscuro se conserva por separado.
+
+Las paletas viven en `globals.css` mediante `--palette-accent` y `--palette-highlight`; actualizan `--accent`, `--accent-hover`, `--accent-text`, `--accent-soft`, `--accent-border` y `--background`. Los botones mantienen texto blanco y el modo oscuro usa texto de acento más claro. Las prioridades, etiquetas y errores conservan su significado visual. La cuadrícula adapta sus columnas y Configuración permite desplazamiento vertical en pantallas pequeñas.
+
 ### Componentes del dominio focus
 
 Imports bajo `@/modules/focus/components/`; sus contratos tipados son la fuente de props. `TagChip` en tag-selector recibe tag y children opcionales, conserva el texto y aplica el color del catálogo. Ejemplo: `<TagChip tag={{id:'personal',name:'Personal',color:'#7c3aed'}}/>`. `TagSelector` recibe tags, selected, onChange, onCreate y disabled; permite selección múltiple y creación con nombre/color. `TimerSettingsMenu` recibe settings, onSave y disabled, con diálogo nativo, validaciones y confirmación. `TagEditor` recibe target, tags, onCreate, onSave, onClose y busy, también con diálogo nativo. `FocusTimer` recibe active, title, minutes, seconds, busy, onPause, onFinish y onSwitch: el diálogo ocupa la pantalla, responde a Escape y admite pausa.
@@ -253,6 +263,8 @@ Imports bajo `@/modules/focus/components/`; sus contratos tipados son la fuente 
 Se conserva la apariencia y comportamiento de estas composiciones existentes; no recrearlas como variantes locales. Los listados usan prioridades textuales y etiquetas con nombre, evitando depender solo del color. Se mantienen carga, vacío, error y disabled. Las preferencias de movimiento reducido y el foco visible se aplican globalmente.
 
 ### Composición de la pantalla de enfoque
+
+`OfficeGif` es una composición exclusiva del diálogo de fin de enfoque, sin props. Muestra un GIF local aleatorio de The Office por apertura, con texto alternativo y control de pausa mediante `Button` secundario. Utiliza `--border`, `--surface-subtle` y `--muted`; comienza con imagen estática si se solicita movimiento reducido y comunica errores de carga. El medio conserva su proporción dentro del ancho disponible y el diálogo permite desplazamiento vertical.
 
 El título de tarea utiliza fondo `--surface` y borde `--border` sobre el contenedor `--surface-subtle`. Agregar se ubica debajo de las etiquetas y ocupa el ancho disponible. `TagSelector` conserva la selección múltiple mientras está abierto y se cierra con clic exterior, salida de foco o Escape. El diálogo de fin de enfoque ofrece continuar la misma tarea, terminarla o cambiar de tarea; todas las opciones registran el ciclo completado.
 
