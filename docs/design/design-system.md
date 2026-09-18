@@ -254,4 +254,6 @@ Se conserva la apariencia y comportamiento de estas composiciones existentes; no
 
 ### Composición de la pantalla de enfoque
 
+El título de tarea utiliza fondo `--surface` y borde `--border` sobre el contenedor `--surface-subtle`. Agregar se ubica debajo de las etiquetas y ocupa el ancho disponible. `TagSelector` conserva la selección múltiple mientras está abierto y se cierra con clic exterior, salida de foco o Escape. El diálogo de fin de enfoque ofrece continuar la misma tarea, terminarla o cambiar de tarea; todas las opciones registran el ciclo completado.
+
 `TaskList` y `TimerPanel` reutilizan los tokens y componentes del catálogo. Reciben datos y callbacks explícitos; la pantalla coordina acciones mediante los hooks `useFocusData` y `useTimerSession`. No incorporan acceso directo a la API.

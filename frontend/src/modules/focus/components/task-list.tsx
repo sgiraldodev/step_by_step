@@ -84,7 +84,7 @@ export default function TaskList({
             onChange={(e) => setTitle(e.target.value)}
             maxLength={300}
             required
-            className="min-w-40 flex-1 bg-transparent px-2 py-2 text-sm outline-none focus:ring-2 focus:ring-[var(--accent-text)] rounded-lg"
+            className="min-w-40 flex-1 border border-[var(--border)] bg-[var(--surface)] px-3 py-3 text-sm outline-none focus:ring-2 focus:ring-[var(--accent-text)] rounded-lg"
           />
           <select
             aria-label="Prioridad"
@@ -96,14 +96,6 @@ export default function TaskList({
               <option key={p}>{p}</option>
             ))}
           </select>
-          <Button
-            disabled={busy || tagBusy || loading || !title.trim()}
-            className="flex items-center gap-1 text-xs"
-            type="submit"
-          >
-            <Plus size={16} />
-            Agregar
-          </Button>
           <div className="w-full px-2 pb-2">
             <TagSelector
               tags={tags}
@@ -113,6 +105,14 @@ export default function TaskList({
               disabled={busy || loading}
             />
           </div>
+          <Button
+            disabled={busy || tagBusy || loading || !title.trim()}
+            className="flex w-full items-center justify-center gap-1 text-xs"
+            type="submit"
+          >
+            <Plus size={16} />
+            Agregar
+          </Button>
         </form>
         <div
           className="mt-3 flex gap-4 overflow-x-auto text-xs"

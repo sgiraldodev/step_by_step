@@ -31,6 +31,12 @@ Las excepciones deliberadas respecto a los valores por defecto del starter está
 
 La validación en navegador usa una cuenta ficticia exclusivamente en la vista aislada http://localhost:3103. No ejecutar pruebas ni semillas contra la base original ni contra cuentas reales.
 
+## Ajustes de cierre y creación de tareas
+
+Al finalizar enfoque o descanso suena un arpegio breve tipo arpa, generado localmente por el navegador. El sonido se habilita con la primera interacción; depende del permiso de reproducción del navegador y del volumen del dispositivo. Al terminar el enfoque se puede continuar la misma tarea (registra un ciclo y comienza el descanso antes del siguiente bloque), terminarla o cambiar de tarea. Cambiar registra el ciclo completado, conserva la tarea en progreso y permite seleccionar otra. Los reintentos reutilizan el identificador del bloque para evitar duplicados.
+
+En Mis tareas, el título tiene fondo y borde visibles; Agregar aparece después del selector de etiquetas. La lista de etiquetas conserva selección múltiple y se cierra al pulsar fuera, salir con el teclado o presionar Escape.
+
 ## Operación
 
 Consultar [README](../../README.md) para inicio y configuración. La vista de pruebas opcional se inicia con `docker compose -f compose.preview.yaml up -d --wait`; no utiliza PostgreSQL ni datos personales.

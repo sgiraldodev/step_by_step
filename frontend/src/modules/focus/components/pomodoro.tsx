@@ -44,6 +44,7 @@ import TagEditor from '@/modules/focus/components/tag-editor';
 import StatisticsView from '@/modules/focus/components/statistics';
 import { useFocusData } from '@/modules/focus/hooks/use-focus-data';
 import { useTimerSession } from '@/modules/focus/hooks/use-timer-session';
+import { useTimerSound } from '@/modules/focus/hooks/use-timer-sound';
 import type { User } from '@/modules/auth/auth';
 
 export default function Pomodoro({
@@ -73,6 +74,7 @@ export default function Pomodoro({
     setError,
   );
   const lock = useRef(false);
+  useTimerSound(timer, setError);
   const yesButton = useRef<HTMLButtonElement>(null);
   const resumeButton = useRef<HTMLButtonElement>(null);
   const startButtons = useRef(new Map<number, HTMLButtonElement>());
@@ -211,7 +213,7 @@ export default function Pomodoro({
       );
     });
   }
-  async function resolve(finished: boolean) {
+  async function resolve(finished: boolean, changeTask = false) {
     if (!timer || (timer.phase !== 'decision' && !(finished && timer.phase === 'work'))) return;
     const secondsInvested = investedSeconds(timer);
     const session = {
@@ -232,10 +234,15 @@ export default function Pomodoro({
       setStatsRevision((value) => value + 1);
       const pastRoutine = task.routine_date !== null && task.routine_date !== businessDay(timeZone);
       setTimer(
-        finished || pastRoutine
+        finished || pastRoutine || changeTask
           ? null
           : { ...makeTimer(session.taskId, 'rest', settings), routineDate: task.routine_date },
       );
+      if (changeTask) {
+        setSection(session.routineDate ? 'routines' : 'tasks');
+        setTagFilter('');
+        setTab('Todas');
+      }
       if (finished) setTimeout(() => startButtons.current.get(session.taskId)?.focus(), 0);
     });
   }
@@ -579,10 +586,11 @@ export default function Pomodoro({
               {Math.round(duration / 60)} minutos bien invertidos
             </p>
             <h2 id="decision-title" className="mt-3 text-2xl font-semibold">
-              ¿Terminaste la tarea?
+              El tiempo terminó
             </h2>
             <p id="decision-description" className="mt-3 break-words text-sm text-[var(--muted)]">
-              {activeTask?.title} · Al responder se registrará un ciclo.
+              {activeTask?.title} · Se registrará un ciclo. ¿Quieres continuar, terminar o cambiar
+              de tarea?
             </p>
             {error && (
               <p role="alert" className="mt-4 text-sm text-[var(--error-text)]">
@@ -593,20 +601,28 @@ export default function Pomodoro({
               ref={yesButton}
               className="mt-6 w-full"
               disabled={busy}
-              onClick={() => void resolve(true)}
+              onClick={() => void resolve(false)}
             >
-              {busy ? 'Guardando…' : 'Sí, terminada'}
+              {busy ? 'Guardando…' : 'Continuar la misma tarea'}
             </Button>
             <button
               className="mt-3 w-full rounded-xl border border-[var(--border)] px-4 py-3 text-sm"
               disabled={busy}
-              onClick={() => void resolve(false)}
+              onClick={() => void resolve(true)}
             >
-              No, necesito más tiempo
+              Terminar tarea
             </button>
+            <Button
+              variant="secondary"
+              className="mt-3 w-full"
+              disabled={busy}
+              onClick={() => void resolve(false, true)}
+            >
+              Cambiar de tarea
+            </Button>
             <p className="mt-4 text-xs text-[var(--muted)]">
-              Si necesitas más tiempo, disfruta primero de {settings.restMinutes} minutos de
-              descanso.
+              Si continúas, tendrás {settings.restMinutes} minutos de descanso antes del siguiente
+              ciclo de la misma tarea.
             </p>
           </section>
         </div>

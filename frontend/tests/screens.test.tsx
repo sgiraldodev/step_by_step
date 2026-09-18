@@ -182,8 +182,8 @@ describe('Pantallas migradas', () => {
       JSON.stringify({ ...makeTimer(1, 'work'), phase: 'decision', remaining: 0, deadline: null }),
     );
     render(<Pomodoro user={user} onLogout={vi.fn()} />);
-    await screen.findByRole('button', { name: 'No, necesito más tiempo' });
-    fireEvent.click(screen.getByRole('button', { name: 'No, necesito más tiempo' }));
+    await screen.findByRole('button', { name: 'Continuar la misma tarea' });
+    fireEvent.click(screen.getByRole('button', { name: 'Continuar la misma tarea' }));
     await waitFor(() => expect(tasks[0].cycles_invested).toBe(1));
     await screen.findByRole('button', { name: 'Cambiar de tarea' });
     fireEvent.click(screen.getByRole('button', { name: 'Cambiar de tarea' }));
@@ -307,11 +307,30 @@ describe('Componentes conservados', () => {
     fireEvent.click(screen.getByRole('button', { name: 'Mostrar etiquetas' }));
     fireEvent.click(screen.getByRole('checkbox', { name: /Personal/ }));
     expect(onChange).toHaveBeenCalledWith([tag.id]);
+    expect(screen.getByRole('checkbox', { name: /Personal/ })).toBeTruthy();
+    fireEvent.pointerDown(document.body);
+    expect(screen.queryByRole('checkbox', { name: /Personal/ })).toBeNull();
     const input = screen.getByPlaceholderText('Busca o escribe una etiqueta…');
     fireEvent.change(input, { target: { value: 'Nueva' } });
     fireEvent.keyDown(input, { key: 'Enter' });
     await waitFor(() => expect(onCreate).toHaveBeenCalled());
     fireEvent.keyDown(input, { key: 'Escape' });
+  });
+  it('registra el ciclo al cambiar de tarea después de terminar el tiempo', async () => {
+    tasks = [task(1, 'En Progreso')];
+    localStorage.setItem(
+      `pomodoro-session-v2:${user.id}`,
+      JSON.stringify({ ...makeTimer(1, 'work'), phase: 'decision', remaining: 0, deadline: null }),
+    );
+    render(<Pomodoro user={user} onLogout={vi.fn()} />);
+    const dialog = await screen.findByRole('dialog', { name: 'El tiempo terminó' });
+    fireEvent.click(within(dialog).getByRole('button', { name: 'Cambiar de tarea' }));
+    await waitFor(() =>
+      expect(screen.queryByRole('dialog', { name: 'El tiempo terminó' })).toBeNull(),
+    );
+    expect(tasks[0].cycles_invested).toBe(1);
+    expect(tasks[0].status).toBe('En Progreso');
+    expect(localStorage.getItem(`pomodoro-session-v2:${user.id}`)).toBeNull();
   });
   it('mantiene la configuración y el catálogo del Design System', async () => {
     const onSave = vi.fn();
