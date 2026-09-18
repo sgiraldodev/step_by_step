@@ -1,5 +1,7 @@
 # Stack tecnológico oficial
 
+> Aplicación en este proyecto: los valores genéricos de este documento se complementan con ADR-001-migracion-pomodoro.md. Las excepciones aprobadas conservan sesiones opacas, autorización por propietario, IDs heredados y ausencia de borrado de entidades.
+
 ## Propósito
 
 Este documento define el stack tecnológico por defecto para los proyectos creados a partir de este starter. Su objetivo es reducir decisiones repetitivas, acelerar el arranque y mantener consistencia entre proyectos.

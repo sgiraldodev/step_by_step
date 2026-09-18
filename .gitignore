@@ -32,3 +32,17 @@ coverage/
 *.tmp
 *.swp
 .cache/
+
+# Archivos locales de Pomodoro y resultados de calidad
+.initial-account.txt
+*.db
+.coverage
+coverage.xml
+htmlcov/
+.ruff_cache/
+playwright-report/
+test-results/
+*.tsbuildinfo
+*.sql
+frontend/audit.json
+frontend/.dependency-lock*/

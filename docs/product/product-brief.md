@@ -1,61 +1,30 @@
 # Product Brief
 
-> Completa este documento antes de iniciar una implementación importante.
-
 ## Producto
 
-**Nombre:** Por definir  
-**Descripción en una línea:** Por definir
+**Nombre:** Step by step · Pomodoro Santi.
+**Descripción:** Organizador personal de tareas y rutinas con bloques de enfoque y estadísticas de tiempo efectivo.
 
-## Problema
+## Problema y usuarios
 
-¿Qué problema estamos resolviendo? ¿Quién lo experimenta hoy? ¿Cuál es la solución o proceso actual?
-
-## Usuarios y actores
-
-| Actor | Objetivo | Principal dolor |
-|---|---|---|
-| Por definir | Por definir | Por definir |
+Personas que necesitan organizar pendientes, repetir hábitos diarios y conocer cuánto tiempo dedican a cada actividad. Cada cuenta trabaja en un espacio privado; no existen roles administrativos ni espacios compartidos.
 
 ## Propuesta de valor
 
-Describe por qué debe existir este producto y qué mejora observable debería generar.
+Trabajar un bloque a la vez, conservar el progreso al recargar y distinguir ciclos completados de esfuerzo efectivo sin duplicarlo al reintentar.
 
 ## Flujos principales
 
-1. Por definir
-2. Por definir
-3. Por definir
+1. Registrarse, guardar el código de recuperación e iniciar sesión.
+2. Crear tareas con prioridad y etiquetas, iniciar, pausar, resolver, cambiar o restaurar una tarea.
+3. Crear rutinas permanentes, completar el registro de hoy y revisar su historial.
+4. Consultar esfuerzo por rango de fechas, etiqueta y día.
+5. Personalizar duraciones y tema del navegador.
 
-## Reglas de negocio
+## MVP y restricciones
 
-Documenta las reglas conocidas sin inventar comportamientos que todavía no estén definidos.
+Incluye todo el comportamiento implementado en Pomodoro Santi. No incluye colaboración, administración, integración de calendarios ni sincronización del reloj entre dispositivos o pestañas. PostgreSQL es la persistencia operativa; Bogotá es la zona horaria de negocio predeterminada. SMTP es la única integración externa opcional.
 
-## MVP
+## Reglas y criterios de éxito
 
-### Incluido
-- Por definir
-
-### Posterior al MVP
-- Por definir
-
-### Fuera de alcance
-- Por definir
-
-## Integraciones
-
-- Por definir
-
-## Restricciones
-
-Restricciones técnicas, regulatorias, operativas, presupuestales, de tiempo, compatibilidad u organización.
-
-## Supuestos y decisiones abiertas
-
-| Elemento | Tipo | Estado / responsable |
-|---|---|---|
-| Por definir | Supuesto / Decisión | Abierto |
-
-## Criterios de éxito
-
-Define resultados observables que permitan evaluar el MVP.
+Los contratos y reglas verificables se mantienen en `requirements.md` y el manual de usuario. La migración debe preservar funcionalidades, aislamiento por propietario, historial Alembic, identidad visual y las pruebas originales. Las particularidades frente al starter están justificadas en ADR-001.

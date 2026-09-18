@@ -223,3 +223,35 @@ Cuando se cree o modifique un componente reutilizable, la tarea no se considera 
 - la página viva del Design System cuando aplique.
 
 La documentación debe reflejar la implementación real. No deben mantenerse ejemplos obsoletos ni props que ya no existan.
+
+## Implementación real de Pomodoro
+
+Fuente de tokens: `frontend/src/app/globals.css`. Fondo `--background`, superficies `--surface`, `--surface-subtle`, texto `--ink`, `--secondary`, `--muted`, bordes `--border`, acción `--accent`, `--accent-hover`, `--accent-text`, `--accent-soft` y errores `--error-*`. Los valores de ambos temas se conservan desde el producto original. Fuente Arial/Helvetica/sans-serif; iconografía Lucide React. Paneles con radio 20px, botones con radio 10px y tamaño adaptable mediante composición de layout. El contenido usa max-w-6xl y cambia a dos columnas en lg; navegación compacta bajo 480px.
+
+Catálogo navegable: `/design-system`, con temas, botones, prioridades, etiquetas y estados.
+
+### Button
+
+Propósito: acciones principales y secundarias. Import: `@/components/ui/button`. Props: atributos nativos, `ref`, `variant="primary" | "secondary"`, `loading` y `disabled`. Default: primary; hover, foco visible, disabled y loading. Loading deshabilita y expone aria-busy. Conserva la semántica nativa de type: declarar submit para formularios y button para acciones. ClassName admite composición de ancho, espacio y distribución; no redefinir colores ni variantes. Debe tener nombre accesible y texto de progreso cuando corresponda.
+
+```tsx
+import {Button} from '@/components/ui/button';
+<Button type="submit">Guardar</Button>
+<Button type="button" variant="secondary">Cancelar</Button>
+<Button loading>Guardando…</Button>
+<Button disabled>Iniciar</Button>
+```
+
+### ThemeToggle
+
+Import: `@/components/ui/theme-toggle`. Sin props. Alterna temas mediante dataset.theme y conserva la preferencia `step-theme`. Incluye nombre accesible; se puede operar con teclado. Ejemplo: `<ThemeToggle/>`.
+
+### Componentes del dominio focus
+
+Imports bajo `@/modules/focus/components/`; sus contratos tipados son la fuente de props. `TagChip` en tag-selector recibe tag y children opcionales, conserva el texto y aplica el color del catálogo. Ejemplo: `<TagChip tag={{id:'personal',name:'Personal',color:'#7c3aed'}}/>`. `TagSelector` recibe tags, selected, onChange, onCreate y disabled; permite selección múltiple y creación con nombre/color. `TimerSettingsMenu` recibe settings, onSave y disabled, con diálogo nativo, validaciones y confirmación. `TagEditor` recibe target, tags, onCreate, onSave, onClose y busy, también con diálogo nativo. `FocusTimer` recibe active, title, minutes, seconds, busy, onPause, onFinish y onSwitch: el diálogo ocupa la pantalla, responde a Escape y admite pausa.
+
+Se conserva la apariencia y comportamiento de estas composiciones existentes; no recrearlas como variantes locales. Los listados usan prioridades textuales y etiquetas con nombre, evitando depender solo del color. Se mantienen carga, vacío, error y disabled. Las preferencias de movimiento reducido y el foco visible se aplican globalmente.
+
+### Composición de la pantalla de enfoque
+
+`TaskList` y `TimerPanel` reutilizan los tokens y componentes del catálogo. Reciben datos y callbacks explícitos; la pantalla coordina acciones mediante los hooks `useFocusData` y `useTimerSession`. No incorporan acceso directo a la API.

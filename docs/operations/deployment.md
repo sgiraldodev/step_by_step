@@ -97,3 +97,7 @@ Las credenciales y secretos deben gestionarse fuera del repositorio mediante los
 ## Producción
 
 Los despliegues productivos deben ser trazables a un commit, tag o versión identificable.
+
+## Instalación local de Pomodoro
+
+Usar `compose.yaml` y seguir el [README](../../README.md). El servicio `migrations` aplica Alembic antes del backend. Los contenedores operativos son `step_by_step_postgres`, `step_by_step_backend` y `step_by_step_frontend`; el volumen propio es `step_by_step_postgres_data`. Las pruebas usan bases aisladas. No copiar ni modificar la base original. Esta tarea habilita operación local; no publica una instancia externa.

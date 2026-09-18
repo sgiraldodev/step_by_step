@@ -49,3 +49,7 @@ En módulos sensibles deben existir pruebas específicas sobre:
 ## CI
 
 Las pruebas relevantes y la validación de cobertura deben ejecutarse automáticamente en CI antes de integrar cambios a la rama principal.
+
+## Aplicación Pomodoro
+
+`pytest` verifica permisos, aislamiento por cuenta, acciones idempotentes, esfuerzo, rutinas, etiquetas, estadísticas y recuperación. Cada caso crea su propia base temporal; nunca elimina datos existentes. Vitest y Testing Library verifican clientes, reloj y pantallas; Playwright recorre la aplicación en la vista aislada. CI exige 80 % global y comprueba migraciones sobre PostgreSQL independiente. Las dependencias se instalan desde los lockfiles. Los comandos y resultados están en el [registro de migración](migracion-pomodoro.md).

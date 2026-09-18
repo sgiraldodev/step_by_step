@@ -80,3 +80,7 @@ Toda persona que opere el proyecto debe conocer:
 - gestión de secretos por ambiente;
 - proceso de hotfix;
 - changelog y TAG actualmente desplegado.
+
+## Inicio de esta aplicación
+
+Consultar el [README](../../README.md) y [registro de migración](migracion-pomodoro.md). La aplicación operativa usa `compose.yaml`, frontend en localhost:3102 y API en localhost:8102. La instalación nueva comienza sin datos del proyecto anterior. El entorno de validación opcional usa `compose.preview.yaml` y localhost:3103.

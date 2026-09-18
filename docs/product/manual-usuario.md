@@ -1,0 +1,64 @@
+# Step by step
+
+Gestor de tareas en español con Next.js, React, TypeScript y Tailwind CSS; API FastAPI, SQLAlchemy y PostgreSQL. Los tres servicios se ejecutan en Docker Compose.
+
+## Cuentas y espacios privados
+
+La pantalla de acceso ofrece registro, acceso con correo electrónico y contraseña y recuperación de contraseña. Cada cuenta tiene sus propias tareas, rutinas, etiquetas, estadísticas, configuración y temporizador. Las consultas y modificaciones se validan en el servidor, incluyendo los IDs de etiquetas y el historial de rutinas. Las contraseñas nuevas se almacenan con Argon2id; se mantiene la verificación de hashes scrypt heredados; las sesiones usan cookies HttpOnly, tokens aleatorios almacenados como hash, vencimiento de 7 días y revocación al cerrar sesión o cambiar la contraseña. Las operaciones del navegador validan origen y cabecera propia; se limitan intentos de autenticación y recuperación.
+
+El registro muestra una sola vez un **código personal de recuperación**, con descarga opcional. **Olvidé mi contraseña** permite usarlo para elegir una nueva contraseña. Cada restablecimiento invalida todas las sesiones y sustituye el código anterior por uno nuevo. Guarda el código fuera de la aplicación. La recuperación por email está disponible al configurar `SMTP_HOST`, `SMTP_PORT`, `SMTP_FROM`, `SMTP_USER`, `SMTP_PASSWORD` y `SMTP_STARTTLS`; los enlaces duran 30 minutos, son de un solo uso y las respuestas no revelan si existe una cuenta. `COOKIE_SECURE=true` requiere HTTPS; en esta instalación local HTTP se usa `false`. `APP_ORIGIN` en Compose define el origen permitido y el destino de los enlaces de correo.
+
+La migración 004 conserva los datos originales en un usuario reservado que no puede iniciar sesión hasta activarse. Las cuentas nuevas empiezan vacías. Para activar el propietario original, abre la aplicación con `/#setup=<INITIAL_SETUP_TOKEN>` usando el valor privado de `.env`, registra tu nombre, correo y contraseña, y guarda el código personal de recuperación. El enlace contiene el token privado de instalación y solo se acepta una vez. No compartas ni versiones esos archivos. En una instalación nueva sin datos previos basta el registro normal.
+
+**Cambiar de tarea**, disponible en enfoque y en el temporizador normal, guarda el tiempo efectivo del bloque, vuelve a pendiente y libera el reloj. No marca la tarea terminada ni suma un ciclo completo por un bloque interrumpido. En descanso no añade más tiempo. El icono **Restaurar tarea** permite reabrir una tarea terminada sin borrar sus ciclos ni su esfuerzo histórico.
+
+## Inicio y operación
+
+Consultar el README del repositorio para arranque, configuración, pruebas y puertos.
+
+## Parte 1: interfaz Next.js
+
+La cabecera incluye un botón para alternar entre **Modo oscuro** y **Modo claro**. Recuerda la elección en este navegador; en la primera visita usa la preferencia del sistema. La identidad visual usa azul profundo y las pestañas **Tareas** y **Rutinas diarias** tienen iconos y un fondo azul sólido para identificar la seleccionada.
+
+### Etiquetas y estadísticas
+
+Cada tarea o rutina admite hasta 10 etiquetas reutilizables. El selector permite buscar, seleccionar varias con casillas, quitar chips y crear una etiqueta con nombre y color (botón o Enter). Los nombres se deduplican sin distinguir mayúsculas ni espacios repetidos. **Etiquetas/Editar** permite clasificar actividades existentes. El filtro de etiqueta afecta la lista y sus métricas.
+
+La tercera pestaña **Estadísticas** muestra tiempo de enfoque, bloques y tareas trabajadas, un gráfico de torta por etiquetas y barras diarias. Permite elegir fechas desde/hasta inclusivas (máximo 367 días) y una etiqueta. Filtrar una etiqueta selecciona los bloques que la contienen; el gráfico conserva el reparto entre todas las etiquetas de esos bloques.
+
+Cada resolución guarda segundos de trabajo efectivos, excluyendo pausas y descansos. Terminar antes registra solo el tiempo consumido; la cuenta de ciclos conserva su regla de sumar uno. El registro usa la fecha de cierre en Colombia y conserva una copia de las etiquetas del bloque. Cambiar etiquetas después no reclasifica el historial. Los bloques con varias etiquetas reparten el tiempo por igual, evitando duplicación; los que no tienen etiquetas aparecen como **Sin etiqueta**. Los ciclos antiguos sin duración permanecen en las tareas y se excluyen de los gráficos, con una explicación visible.
+
+`backend/migrations/versions/003_tags_effort.py` añade etiquetas, relaciones de tareas/rutinas y los campos de esfuerzo en los recibos existentes. `GET/POST /api/v1/tags` gestiona el catálogo, `tag_ids` en las operaciones de tareas/rutinas asigna etiquetas y `GET /api/v1/statistics?date_from=YYYY-MM-DD&date_to=YYYY-MM-DD&tag_id=UUID` consulta el reporte.
+
+Para revisar la interfaz con datos ficticios sin tocar PostgreSQL, después de construir las imágenes: `docker compose -f compose.preview.yaml up -d --wait`; abrir `http://localhost:3103`. La copia usa una base SQLite aislada en el contenedor y se descarta con `docker compose -f compose.preview.yaml down`.
+Su correo ficticio es `preview@example.test` y su contraseña `Preview-password-2026`. Estos datos de demostración solo existen en esa copia aislada.
+
+El botón **Configuración** en la cabecera permite elegir minutos enteros de concentración (1–180) y descanso (1–60), o restaurar los valores predeterminados de 30 / 5. Las preferencias se guardan en este navegador y se conservan al recargar. Los cambios se aplican al próximo bloque; un bloque activo o pausado conserva su duración original.
+
+Al iniciar o reanudar un bloque de trabajo aparece una vista de enfoque que cubre toda la pantalla con un fondo negro degradado. Muestra el título, la cuenta regresiva y los botones **Pausar** y **Terminar**. Pausar (también con Escape) conserva el tiempo restante y regresa a la pantalla normal; **Reanudar** vuelve a la vista de enfoque. Funciona tanto para tareas como para rutinas, y se recupera al recargar si el bloque sigue activo. Al llegar a cero se cierra para mostrar la pregunta de resolución. El descanso permanece en la vista normal.
+
+### Rutinas diarias
+
+Durante un bloque de trabajo, **Terminar** está disponible junto a **Pausar** en la vista de enfoque y junto a **Pausar/Reanudar** en la vista normal. Permite finalizar anticipadamente la tarea o rutina, registra un ciclo utilizado y cierra el reloj, sin esperar a cero ni iniciar un descanso. Si falla el guardado, el bloque queda pausado y puede reintentarse sin duplicar ciclos. Durante el descanso no registra otro ciclo de trabajo.
+
+La pestaña **Rutinas diarias** permite crear actividades que se repiten todos los días, como hacer ejercicio, almorzar o leer. La definición de la rutina permanece en PostgreSQL. Cada día tiene una tarea independiente con su propio estado y ciclos: al llegar un nuevo día aparece pendiente con cero ciclos, conservando el registro anterior. El botón **Historial** muestra los últimos 30 registros diarios.
+
+Puedes marcar una rutina como hecha usando su casilla, sin inventar un Pomodoro, o trabajar con su reloj. Desmarcarla conserva los ciclos realmente invertidos. **Desactivar** suspende su repetición y **Volver a activar** la recupera; nada se elimina y reactivarla en el mismo día conserva su progreso.
+
+El día se calcula en `America/Bogota`, definido mediante `APP_TIMEZONE` en Compose. Los registros se generan al consultar las rutinas, sin depender de que el navegador o un programador de tareas esté abierto a medianoche. Mientras la página está abierta, comprueba el cambio de día cada 30 segundos y al recuperar el foco. No se crean registros ficticios para días en que no se accedió a las rutinas. Un bloque que cruza medianoche puede terminar y registrar su esfuerzo en el día en que empezó; no continúa con otro bloque del día anterior. Las tareas puntuales permanecen en la pestaña **Tareas**.
+
+- `frontend/src/modules/focus/components/pomodoro.tsx`: formulario, lista, filtros, métricas, temporizador y modal accesible.
+- `frontend/src/modules/focus/tasks.ts`: contratos y cliente HTTP.
+- `frontend/src/modules/focus/timer.ts`: máquina de estados del temporizador.
+- `frontend/src/app/`: página, layout y estilos Tailwind.
+- `frontend/Dockerfile`: compilación por etapas y ejecución sin privilegios.
+
+Crear una tarea con título y prioridad. El reloj inicia 30 minutos y cambia la tarea a **En Progreso**. Al terminar, el contador se detiene hasta responder el modal. Ambas respuestas suman exactamente un ciclo: **Sí** termina la tarea; **No** inicia 5 minutos de descanso. Al terminar el descanso comienza otro bloque de 30 minutos. Pausar y reanudar funciona en trabajo y descanso.
+
+El temporizador usa una fecha límite, evitando que la pestaña en segundo plano distorsione el conteo. Su estado se conserva en localStorage, incluyendo pausa, descanso y respuesta pendiente. Al regresar tras un descanso vencido, comienza un nuevo bloque completo; no se registran bloques ficticios durante la ausencia. Solo hay un temporizador activo en la interfaz. Las métricas representan todos los ciclos registrados, no únicamente los del día.
+
+### Registro e identificación de la cuenta
+
+El registro pide tu nombre, correo electrónico y contraseña. El nombre admite espacios, tildes y mayúsculas, tiene entre 1 y 100 caracteres y puede repetirse entre personas. El sistema muestra «Te damos la bienvenida, Santiago Giraldo» usando el nombre registrado.
+
+El correo es el único identificador para entrar y recuperar acceso. No hay un nombre de usuario. La contraseña tiene de 10 a 128 caracteres; la API informa qué campos corregir sin devolver las credenciales enviadas.

@@ -1,5 +1,7 @@
 # Seguridad, autenticación y autorización
 
+> Aplicación en este proyecto: los valores genéricos de este documento se complementan con ADR-001-migracion-pomodoro.md. Las excepciones aprobadas conservan sesiones opacas, autorización por propietario, IDs heredados y ausencia de borrado de entidades.
+
 ## Objetivo
 
 Definir el estándar base para autenticación, autorización, permisos y aislamiento multi-tenant.

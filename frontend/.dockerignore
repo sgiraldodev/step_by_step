@@ -1,0 +1,10 @@
+node_modules
+.next
+.env*
+*.tsbuildinfo
+.dependency-lock*
+coverage
+test-results
+playwright-report
+*.log
+audit.json

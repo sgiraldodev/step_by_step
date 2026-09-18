@@ -1,28 +1,45 @@
-# Software Project Starter
+# Step by step · Pomodoro Santi
 
-Plantilla maestra para iniciar proyectos de software con una base consistente de producto, arquitectura, desarrollo, calidad, diseño y operación.
+Aplicación de enfoque personal trasladada desde `Pomodoro_Santi` a la estructura y reglas de este repositorio. Conserva cuentas privadas, recuperación de acceso, tareas, rutinas diarias, etiquetas, estadísticas, temas y temporizador persistente con modo de enfoque.
 
-## Objetivo
+## Inicio
 
-Evitar que cada proyecto comience desde cero y convertir las mejores prácticas aprendidas en un estándar reutilizable.
+Requisitos: Docker Desktop con contenedores Linux y Docker Compose.
 
-## Flujo recomendado
+1. Copiar `.env.example` a `.env` si no existe.
+2. Configurar una contraseña PostgreSQL y un token de instalación aleatorios. No versionar `.env`.
+3. Ejecutar `docker compose up --build -d --wait`.
+4. Abrir http://localhost:3102. La API está en http://localhost:8102/docs y el catálogo visual en http://localhost:3102/design-system.
 
-1. Completar el Product Brief.
-2. Definir alcance y MVP.
-3. Validar prototipo y experiencia.
-4. Confirmar arquitectura y decisiones técnicas.
-5. Consolidar el Design System.
-6. Preparar el entorno técnico.
-7. Construir por vertical slices.
-8. Validar pruebas, seguridad y Definition of Done.
-9. Desplegar y documentar.
-10. Retroalimentar el starter con aprendizajes realmente reutilizables.
+El servicio `migrations` ejecuta Alembic antes del backend. `/health` comprueba el proceso; `/ready` valida PostgreSQL. Los puertos y el volumen `step_by_step_postgres_data` son independientes de la instalación original. La cookie `step_by_step_session` evita interferir con sus sesiones.
 
-## Principio central
+## Estructura
 
-Reutilizar antes de extender y extender antes de crear. Las decisiones específicas de un negocio no deben convertirse automáticamente en reglas globales.
+```text
+backend/app/core/               Configuración, sesiones, seguridad y errores
+backend/app/modules/auth/      Identidad y recuperación de acceso
+backend/app/modules/focus/     Tareas, rutinas, etiquetas y esfuerzo
+backend/app/integrations/      Envío de correo
+backend/migrations/            Historial Alembic original, revisiones 001–004 y nombre personal 005
+frontend/src/app/              Rutas y estilos con tokens
+frontend/src/modules/          Módulos auth y focus
+frontend/src/components/ui/    Componentes compartidos
+frontend/src/lib/http.ts       Cliente HTTP versionado
+docs/                         Producto, arquitectura, diseño y operación
+```
 
-## Idioma
+## Validaciones
 
-Toda la documentación, instrucciones para agentes y explicaciones del proyecto deben mantenerse en español. Se conservan nombres técnicos en inglés cuando son convenciones de la industria o nombres propios de tecnologías.
+Desde `backend`, instalar las versiones verificadas con `pip install -r requirements.lock`. Después ejecutar: `ruff check app tests`, `ruff format --check app tests` y `pytest`. Para las pruebas configurar `DATABASE_URL=sqlite:///test-isolated.db`; cada caso crea una base temporal distinta y nunca vacía una base existente. Las pruebas de API y permisos utilizan AsyncSession, con SQLite únicamente como motor aislado de pruebas.
+
+Desde `frontend`: `npm ci`, `npm run lint`, `npm run format:check`, `npm run check`, `npm test`, `npm run test:legacy` y `npm run build`. `npm run test:e2e` valida el flujo real sobre la aplicación local en Docker.
+
+Consultar [manual de usuario](docs/product/manual-usuario.md), [arquitectura](docs/architecture/architecture.md), [decisión de migración](docs/architecture/decisions/ADR-001-migracion-pomodoro.md) y [registro de validación](docs/development/migracion-pomodoro.md).
+
+## Datos y operación
+
+La instalación empieza con una base nueva y vacía, según la decisión del usuario. No se copian cuentas ni historial anteriores. El repositorio original y su volumen permanecen intactos. Las migraciones conservan IDs, hashes de contraseña, propietarios e historial. No ejecutar pruebas, semillas ni restauraciones contra la base original. Cualquier reemplazo, eliminación o restauración sobre datos existentes requiere autorización específica según `AGENTS.md`.
+
+SMTP es opcional; sin él se conserva la recuperación por código personal. Una publicación externa requiere HTTPS, `COOKIE_SECURE=true`, orígenes explícitos y la política de respaldos definida en `docs/operations/`.
+
+El registro pide nombre y correo; se inicia sesión y recupera acceso únicamente con correo electrónico. El nombre se usa en el saludo, admite espacios y no es único. Véase [ADR-002](docs/architecture/decisions/ADR-002-correo-y-nombre-personal.md).

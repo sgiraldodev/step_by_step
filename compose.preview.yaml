@@ -1,0 +1,26 @@
+# Vista aislada de validación con SQLite; nunca utiliza la base principal.
+name: step-preview
+services:
+  api:
+    image: step_by_step_backend:1.0.0
+    environment:
+      DATABASE_URL: sqlite:////tmp/step-preview.db
+      APP_TIMEZONE: America/Bogota
+      APP_ORIGIN: http://localhost:3103
+      CORS_ORIGINS: http://localhost:3103
+      SESSION_COOKIE_NAME: step_preview_session
+    volumes:
+      - ./backend:/app:ro
+    command: [sh, -c, "python -m tests.seed_preview && uvicorn main:app --host 0.0.0.0 --port 8000"]
+    healthcheck:
+      test: [CMD, python, -c, "import urllib.request; urllib.request.urlopen('http://localhost:8000/health')"]
+      interval: 3s
+      timeout: 3s
+      retries: 20
+  frontend:
+    image: step_by_step_frontend:1.0.0
+    ports:
+      - 127.0.0.1:3103:3000
+    depends_on:
+      api:
+        condition: service_healthy
