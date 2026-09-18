@@ -42,7 +42,14 @@ class AuthService:
             "id": user.id,
             "name": user.name or user.username or user.email,
             "email": user.email,
+            "app_color": user.app_color,
         }
+
+    @staticmethod
+    async def save_color(db, user_id, color):
+        user = await AuthRepository.set_color(db, user_id, color)
+        await db.commit()
+        return AuthService.public(user)
 
     @staticmethod
     async def session(db, user):

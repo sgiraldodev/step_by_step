@@ -3,7 +3,13 @@ from fastapi import APIRouter, BackgroundTasks, Request, Response
 from app.core.config import settings
 from app.core.database import DB
 from app.modules.auth.dependencies import CurrentUser
-from app.modules.auth.schemas import LoginInput, RecoveryInput, RegisterInput, ResetInput
+from app.modules.auth.schemas import (
+    ColorPreferenceInput,
+    LoginInput,
+    RecoveryInput,
+    RegisterInput,
+    ResetInput,
+)
 from app.modules.auth.service import AuthService
 
 router = APIRouter()
@@ -39,6 +45,11 @@ async def auth_register(data: RegisterInput, request: Request, response: Respons
     payload, raw = await AuthService.register(db, data)
     set_session_cookie(response, raw)
     return payload
+
+
+@router.patch("/auth/preferences")
+async def auth_preferences(data: ColorPreferenceInput, user: CurrentUser, db: DB):
+    return await AuthService.save_color(db, user.id, data.app_color)
 
 
 @router.post("/auth/login")

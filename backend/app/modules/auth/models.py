@@ -11,6 +11,7 @@ class User(Base):
     username = Column(String(50), unique=True)
     name = Column(String(100))
     email = Column(String(254), unique=True)
+    app_color = Column(String(10), nullable=False, default="blue", server_default="blue")
     password_hash = Column(String(300))
     recovery_hash = Column(String(64))
     created_at = Column(DateTime(timezone=True), server_default=func.now(), nullable=False)

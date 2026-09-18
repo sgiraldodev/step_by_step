@@ -1,4 +1,16 @@
+from typing import Literal
+
 from pydantic import BaseModel, ConfigDict, Field, field_validator
+
+AppColor = Literal[
+    "blue", "green", "teal", "cyan", "orange", "pink", "lilac", "violet", "red", "slate"
+]
+
+
+class ColorPreferenceInput(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+    app_color: AppColor
+
 
 EMAIL_PATTERN = r"^[^\s@]+@[^\s@]+\.[^\s@]+$"
 

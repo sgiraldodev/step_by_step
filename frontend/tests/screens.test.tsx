@@ -151,6 +151,18 @@ afterEach(() => {
 });
 
 describe('Pantallas migradas', () => {
+  it('separa la portada del acceso y permite abrir directamente el registro', async () => {
+    render(<Page />);
+    await screen.findByRole('heading', { name: /Enfócate en lo importante/ });
+    expect(screen.queryByLabelText('Correo electrónico')).toBeNull();
+    expect(screen.queryByRole('heading', { name: 'Bienvenido a tu espacio' })).toBeNull();
+    cleanup();
+    window.history.replaceState(null, '', '/acceso#registro');
+    render(<AuthShell />);
+    await screen.findByRole('heading', { name: 'Crea tu cuenta' });
+    expect(screen.getByLabelText('Nombre')).toBeTruthy();
+    expect(screen.queryByRole('heading', { name: /Enfócate en lo importante/ })).toBeNull();
+  });
   it('crea una tarea, inicia, pausa, reanuda y registra un cierre anticipado', async () => {
     render(<Pomodoro user={user} onLogout={vi.fn()} />);
     await screen.findByText('Escribir propuesta');
@@ -209,7 +221,7 @@ describe('Pantallas migradas', () => {
     await waitFor(() => expect(routinesApi.update).toHaveBeenCalled());
   });
   it('recupera acceso, valida confirmación y presenta un código nuevo', async () => {
-    render(<Page />);
+    render(<AuthShell />);
     await screen.findByRole('button', { name: 'Olvidé mi contraseña' });
     fireEvent.click(screen.getByRole('button', { name: 'Olvidé mi contraseña' }));
     fireEvent.change(screen.getByLabelText('Correo electrónico'), {

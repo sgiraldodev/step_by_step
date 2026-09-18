@@ -5,6 +5,12 @@ from app.modules.auth.models import AuthLimit, LoginSession, PasswordReset, User
 
 class AuthRepository:
     @staticmethod
+    async def set_color(db, user_id, color):
+        user = await AuthRepository.user(db, user_id, lock=True)
+        user.app_color = color
+        return user
+
+    @staticmethod
     async def find(db, email):
         normalized = email.strip().lower()
         return await db.scalar(select(User).where(User.email == normalized))

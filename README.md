@@ -20,7 +20,7 @@ backend/app/core/               Configuración, sesiones, seguridad y errores
 backend/app/modules/auth/      Identidad y recuperación de acceso
 backend/app/modules/focus/     Tareas, rutinas, etiquetas y esfuerzo
 backend/app/integrations/      Envío de correo
-backend/migrations/            Historial Alembic original, revisiones 001–004 y nombre personal 005
+backend/migrations/            Historial Alembic original, revisiones 001–004, nombre personal 005 y color por usuario 006
 frontend/src/app/              Rutas y estilos con tokens
 frontend/src/modules/          Módulos auth y focus
 frontend/src/components/ui/    Componentes compartidos

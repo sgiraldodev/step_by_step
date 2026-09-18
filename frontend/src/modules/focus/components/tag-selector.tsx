@@ -133,7 +133,7 @@ export default function TagSelector({
           }}
           placeholder="Busca o escribe una etiqueta…"
           aria-controls={`${id}-options`}
-          className="min-w-36 flex-1 bg-transparent px-1 py-1 text-xs"
+          className="min-w-36 flex-1 bg-transparent px-1 py-1 text-sm"
         />
         <button
           type="button"

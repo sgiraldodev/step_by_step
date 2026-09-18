@@ -96,7 +96,7 @@ export default function TaskList({
               <option key={p}>{p}</option>
             ))}
           </select>
-          <div className="w-full px-2 pb-2">
+          <div className="w-full pb-2">
             <TagSelector
               tags={tags}
               selected={selectedTags}

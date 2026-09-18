@@ -4,7 +4,7 @@ test('la aplicación migrada conserva registro, tareas, enfoque, rutinas y estad
   page,
 }) => {
   const username = `e2e_${Date.now()}`;
-  await page.goto('/');
+  await page.goto('/acceso');
   await page.getByRole('button', { name: 'Crear una cuenta', exact: true }).click();
   await page.getByLabel('Nombre', { exact: true }).fill('Santiago Giraldo');
   await page.getByLabel('Correo electrónico', { exact: true }).fill(`${username}@example.test`);
@@ -60,7 +60,7 @@ test('la aplicación migrada conserva registro, tareas, enfoque, rutinas y estad
 });
 
 test('el registro admite nombres con espacios y el acceso pide solo correo', async ({ page }) => {
-  await page.goto('/');
+  await page.goto('/acceso');
   await expect(page.getByLabel('Correo electrónico')).toBeVisible();
   await expect(page.getByLabel('Nombre', { exact: true })).toHaveCount(0);
   await page.getByRole('button', { name: 'Crear una cuenta', exact: true }).click();

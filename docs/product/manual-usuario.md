@@ -4,6 +4,10 @@ Gestor de tareas en español con Next.js, React, TypeScript y Tailwind CSS; API 
 
 ## Cuentas y espacios privados
 
+Sin una sesión abierta, el inicio presenta una escena tranquila de café, beneficios de organizar el trabajo en bloques y una guía de 25 minutos de enfoque y 5 de pausa. Los tiempos son un punto de partida y pueden ajustarse en Configuración. Las tarjetas Música, Guitarra y Lectura permiten elegir una actividad y muestran un mensaje sobre reservar tiempo para disfrutarla; son contenido visual, sin reproducción de audio.
+
+**Encuentra tu ritmo** y **Crear mi espacio** abren el registro en `/acceso#registro`. **Entrar** abre el inicio de sesión en `/acceso`. Los formularios están en una página independiente y no aparecen al final de la portada. Una sesión activa entra directamente al espacio personal; los enlaces de recuperación y activación mantienen su flujo específico.
+
 La pantalla de acceso ofrece registro, acceso con correo electrónico y contraseña y recuperación de contraseña. Cada cuenta tiene sus propias tareas, rutinas, etiquetas, estadísticas, configuración y temporizador. Las consultas y modificaciones se validan en el servidor, incluyendo los IDs de etiquetas y el historial de rutinas. Las contraseñas nuevas se almacenan con Argon2id; se mantiene la verificación de hashes scrypt heredados; las sesiones usan cookies HttpOnly, tokens aleatorios almacenados como hash, vencimiento de 7 días y revocación al cerrar sesión o cambiar la contraseña. Las operaciones del navegador validan origen y cabecera propia; se limitan intentos de autenticación y recuperación.
 
 El registro muestra una sola vez un **código personal de recuperación**, con descarga opcional. **Olvidé mi contraseña** permite usarlo para elegir una nueva contraseña. Cada restablecimiento invalida todas las sesiones y sustituye el código anterior por uno nuevo. Guarda el código fuera de la aplicación. La recuperación por email está disponible al configurar `SMTP_HOST`, `SMTP_PORT`, `SMTP_FROM`, `SMTP_USER`, `SMTP_PASSWORD` y `SMTP_STARTTLS`; los enlaces duran 30 minutos, son de un solo uso y las respuestas no revelan si existe una cuenta. `COOKIE_SECURE=true` requiere HTTPS; en esta instalación local HTTP se usa `false`. `APP_ORIGIN` en Compose define el origen permitido y el destino de los enlaces de correo.
@@ -62,3 +66,8 @@ El temporizador usa una fecha límite, evitando que la pestaña en segundo plano
 El registro pide tu nombre, correo electrónico y contraseña. El nombre admite espacios, tildes y mayúsculas, tiene entre 1 y 100 caracteres y puede repetirse entre personas. El sistema muestra «Te damos la bienvenida, Santiago Giraldo» usando el nombre registrado.
 
 El correo es el único identificador para entrar y recuperar acceso. No hay un nombre de usuario. La contraseña tiene de 10 a 128 caracteres; la API informa qué campos corregir sin devolver las credenciales enviadas.
+
+
+## Color personal
+
+En Configuración, el color elegido se guarda al seleccionarlo y pertenece únicamente a tu cuenta. Se conserva al recargar, cerrar sesión o entrar desde otro navegador, hasta que elijas otro. Las cuentas sin preferencia empiezan en azul. Espera el mensaje de guardado; si hay un error, se restaura el color anterior y puedes reintentar. El modo claro u oscuro mantiene su preferencia separada.

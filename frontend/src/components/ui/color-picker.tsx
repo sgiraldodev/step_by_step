@@ -2,9 +2,11 @@
 
 import { useEffect, useId, useState } from 'react';
 import { APP_COLORS, APP_COLOR_STORAGE_KEY, validAppColor, type AppColor } from './app-colors';
+import { useColorPreference } from './color-preference-provider';
 
 export default function ColorPicker() {
   const id = useId();
+  const preference = useColorPreference();
   const [selected, setSelected] = useState<AppColor>('blue');
   const [message, setMessage] = useState('');
 
@@ -13,6 +15,10 @@ export default function ColorPicker() {
   }, []);
 
   function choose(color: AppColor) {
+    if (preference) {
+      void preference.choose(color);
+      return;
+    }
     document.documentElement.setAttribute('data-color', color);
     setSelected(color);
     try {
@@ -36,7 +42,8 @@ export default function ColorPicker() {
               type="radio"
               name={`${id}-color`}
               value={color.id}
-              checked={selected === color.id}
+              checked={(preference?.selected ?? selected) === color.id}
+              disabled={preference?.busy}
               onChange={() => choose(color.id)}
               className="peer sr-only"
             />
@@ -52,7 +59,7 @@ export default function ColorPicker() {
         ))}
       </div>
       <p role="status" className="mt-2 text-xs text-[var(--muted)]">
-        {message}
+        {preference?.message ?? message}
       </p>
     </fieldset>
   );
