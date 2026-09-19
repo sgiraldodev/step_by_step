@@ -17,16 +17,11 @@ Usa `STANDARD` por defecto. Cambia a `FULL` solo cuando el impacto sea transvers
 
 ## Antes de actuar
 
-Lee:
+Lee `AGENTS.md`, `PROJECT_CONTEXT.md`, las reglas globales y, cuando exista, `docs/prompts/16-crear-vertical-slice.md`.
 
-- `AGENTS.md`;
-- `docs/prompts/_reglas-globales.md`;
-- `docs/prompts/16-crear-vertical-slice.md` cuando exista;
-- requisitos y reglas de negocio directamente relacionados;
-- secciones de arquitectura, Design System, testing y DoD que afecten el flujo;
-- ADRs aplicables.
+Usa el mapa para cargar solo requisitos del caso de uso, arquitectura y contratos de módulos afectados, Design System si modifica UI, testing, partes aplicables de la Definition of Done y ADR específicos.
 
-No releas documentación o módulos no relacionados si el alcance puede resolverse con inspección dirigida.
+No releas documentación, Skills o módulos no relacionados. Amplía el contexto únicamente cuando dependencias públicas, datos, permisos o integraciones revelen impacto adicional.
 
 ## Regla principal
 

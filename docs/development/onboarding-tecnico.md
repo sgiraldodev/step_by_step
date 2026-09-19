@@ -10,11 +10,9 @@ Antes de modificar código, revisar:
 
 1. `README.md`;
 2. `AGENTS.md`;
-3. `docs/product/`;
-4. `docs/architecture/`;
-5. `docs/design/`;
-6. `docs/development/`;
-7. `docs/operations/`;
+3. `PROJECT_CONTEXT.md`;
+4. el Product Brief y los requisitos relacionados con la tarea inicial;
+5. únicamente los documentos de arquitectura, diseño, desarrollo u operación que `PROJECT_CONTEXT.md` enrute.
 8. ADRs relevantes.
 
 ## 2. Preparar el entorno

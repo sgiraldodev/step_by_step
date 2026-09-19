@@ -11,12 +11,22 @@ Trabaja como un agente de ingeniería dentro de este repositorio. Preserva la co
 - Se conservan en inglés nombres propios de tecnologías, comandos, librerías, patrones ampliamente aceptados y términos técnicos cuando traducirlos reduzca claridad.
 - Los identificadores de código deben seguir las convenciones naturales del lenguaje y del proyecto.
 
+## Contexto bajo demanda
+
+Después de leer este archivo, usa `PROJECT_CONTEXT.md` como índice de enrutamiento.
+
+- Clasifica la tarea en `LIGHT`, `STANDARD` o `FULL`.
+- Lee únicamente la documentación y el código directamente relacionados.
+- No leas directorios completos, todos los ADR, todos los prompts o todas las Skills por defecto.
+- Amplía el contexto solo cuando la inspección revele una dependencia o impacto adicional.
+- Las referencias de este archivo indican obligaciones; `PROJECT_CONTEXT.md` decide cuándo son aplicables.
+
 ## Flujo obligatorio
 
 Antes de modificar código o documentación:
 
 1. Lee este archivo y cualquier `AGENTS.md` más específico dentro de la ruta objetivo.
-2. Inspecciona la estructura actual del repositorio y la documentación relevante.
+2. Lee `PROJECT_CONTEXT.md` e inspecciona de forma dirigida la estructura, el código y la documentación relevante.
 3. Busca implementaciones equivalentes antes de crear nuevos patrones.
 4. Identifica módulos, contratos, datos, permisos, pruebas y documentación afectados.
 5. Prioriza reutilizar sobre extender y extender sobre crear.
@@ -115,7 +125,7 @@ La arquitectura específica de un proyecto puede apartarse de los valores por de
 
 Antes de crear o modificar UI:
 
-- Lee `docs/design/design-system.md` y `docs/design/ux-guidelines.md`.
+- Usa la ruta de UI de `PROJECT_CONTEXT.md`: lee siempre el Design System y agrega las guías UX solo cuando cambien interacción, responsive o accesibilidad.
 - Reutiliza componentes y tokens existentes.
 - No crees componentes visuales casi duplicados.
 - Conserva accesibilidad, responsive behavior y estados de carga, error, vacío, deshabilitado y permisos.

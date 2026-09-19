@@ -4,11 +4,11 @@
 
 Centralizar el comportamiento común que deben seguir todos los prompts de `docs/prompts/` para evitar duplicación, contradicciones y mantenimiento disperso.
 
-Todos los prompts de esta carpeta heredan estas reglas, además de `AGENTS.md`, la arquitectura vigente, el Design System, la estrategia de testing y la Definition of Done.
+Todos los prompts de esta carpeta heredan estas reglas y `AGENTS.md`. `PROJECT_CONTEXT.md` determina qué partes de arquitectura, producto, Design System, testing, operaciones y Definition of Done son aplicables; no deben cargarse todas por defecto.
 
 ## Flujo de trabajo
 
-1. Leer `AGENTS.md` y únicamente la documentación relevante para la tarea.
+1. Leer `AGENTS.md`, enrutar con `PROJECT_CONTEXT.md` y cargar únicamente la documentación relevante para la tarea.
 2. Inspeccionar la implementación existente antes de proponer cambios, priorizando archivos, módulos y contratos afectados sobre una lectura completa del repositorio.
 3. Buscar soluciones equivalentes y aplicar esta prioridad:
    - reutilizar;

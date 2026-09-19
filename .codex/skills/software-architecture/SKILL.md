@@ -11,18 +11,9 @@ Aplicar la arquitectura vigente del proyecto y detectar desviaciones antes de in
 
 ## Antes de actuar
 
-Lee, según aplique:
+Lee `AGENTS.md` y `PROJECT_CONTEXT.md`. Empieza por `docs/architecture/architecture.md` y agrega únicamente la fuente específica: stack si cambian tecnologías; API si cambia HTTP; seguridad si intervienen identidad, permisos o tenant; integraciones si hay proveedor externo; producto si una regla funcional determina la decisión; y solo los ADR relacionados.
 
-- `AGENTS.md`;
-- `docs/architecture/architecture.md`;
-- `docs/architecture/stack-tecnologico.md`;
-- `docs/architecture/api-convenciones.md`;
-- `docs/architecture/seguridad-autenticacion.md`;
-- `docs/architecture/integraciones.md`;
-- ADRs existentes en `docs/architecture/decisions/`;
-- `docs/product/product-brief.md` y requisitos relacionados con la tarea.
-
-No sustituyas una decisión específica del proyecto por una preferencia genérica de esta Skill.
+No cargues toda la carpeta de arquitectura ni todos los ADR. No sustituyas una decisión específica del proyecto por una preferencia genérica de esta Skill.
 
 ## Método
 

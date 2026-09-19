@@ -43,3 +43,7 @@ La instalación empieza con una base nueva y vacía, según la decisión del usu
 SMTP es opcional; sin él se conserva la recuperación por código personal. Una publicación externa requiere HTTPS, `COOKIE_SECURE=true`, orígenes explícitos y la política de respaldos definida en `docs/operations/`.
 
 El registro pide nombre y correo; se inicia sesión y recupera acceso únicamente con correo electrónico. El nombre se usa en el saludo, admite espacios y no es único. Véase [ADR-002](docs/architecture/decisions/ADR-002-correo-y-nombre-personal.md).
+
+## Contexto bajo demanda
+
+`PROJECT_CONTEXT.md` funciona como índice del repositorio. Los agentes leen primero ese mapa y después cargan solo las reglas de producto, arquitectura, diseño, desarrollo u operación que correspondan a la tarea. Esto reduce consumo de contexto y evita decisiones influenciadas por documentación no relacionada.
