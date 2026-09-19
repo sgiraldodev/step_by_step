@@ -9,7 +9,7 @@ from app.core.config import settings
 from app.core.domain import LEGACY_OWNER_ID
 from app.core.exceptions import ApplicationError
 from app.core.security import DUMMY_PASSWORD, hash_password, token_hash, utc, verify_password
-from app.integrations.email.client import send_reset_email
+from app.integrations.email.service import is_configured, send_email_safely, sender_address
 from app.modules.auth.models import AuthLimit, LoginSession, PasswordReset, User
 from app.modules.auth.repository import AuthRepository
 
@@ -66,6 +66,16 @@ class AuthService:
 
     @staticmethod
     async def register(db, data):
+        if await AuthRepository.find(db, data.email):
+            raise ApplicationError(409, "El correo electrónico ya está registrado.")
+        verification = await AuthRepository.email_verification(db, data.email)
+        if (
+            not verification
+            or not verification.token_hash
+            or utc(verification.expires_at) <= datetime.now(timezone.utc)
+            or not hmac.compare_digest(verification.token_hash, token_hash(data.verification_token))
+        ):
+            raise ApplicationError(400, "Valida tu correo antes de crear la cuenta.")
         code = secrets.token_urlsafe(32)
         user = None
         if data.setup_code:
@@ -80,6 +90,7 @@ class AuthService:
             db.add(user)
         user.name, user.email = (data.name, data.email.strip().lower())
         user.password_hash, user.recovery_hash = (hash_password(data.password), token_hash(code))
+        verification.token_hash = None
         try:
             await db.commit()
         except IntegrityError:
@@ -93,9 +104,12 @@ class AuthService:
         user = None
         reset = None
         if data.token:
-            reset = await AuthRepository.reset(db, token_hash(data.token))
+            reset = await AuthRepository.reset(db, token_hash(data.token), lock=False)
             if reset and utc(reset.expires_at) > datetime.now(timezone.utc):
                 user = await AuthRepository.user(db, reset.user_id, lock=True)
+                reset = await AuthRepository.reset(db, token_hash(data.token))
+                if not reset or utc(reset.expires_at) <= datetime.now(timezone.utc):
+                    user = None
         elif data.email and data.recovery_code:
             candidate = await AuthRepository.find(db, data.email)
             if candidate:
@@ -115,8 +129,7 @@ class AuthService:
 
     @staticmethod
     async def forgot(db, data, background):
-        host = settings.smtp_host
-        if not host or not settings.smtp_from or (not settings.app_origin):
+        if not is_configured() or not settings.app_origin:
             raise ApplicationError(
                 503, "El envío de correo no está configurado. Usa tu código de recuperación."
             )
@@ -133,14 +146,14 @@ class AuthService:
             )
             await db.commit()
             message = EmailMessage()
-            message["From"] = settings.smtp_from
+            message["From"] = sender_address()
             message["To"] = user.email
             message["Subject"] = "Restablecer contraseña · Step by step"
             origin = settings.app_origin.rstrip("/")
             message.set_content(
                 f"Abre este enlace para elegir una nueva contraseña. Vence en 30 minutos y solo se puede usar una vez.\n\n{origin}/#reset={raw}\n\nSi no lo solicitaste, ignora este correo."
             )
-            background.add_task(send_reset_email, host, message)
+            background.add_task(send_email_safely, message)
         return {
             "message": "Si la cuenta existe, recibirás un enlace para restablecer tu contraseña."
         }
@@ -150,7 +163,7 @@ class AuthService:
         user = await AuthRepository.user(db, LEGACY_OWNER_ID)
         return {
             "setup_required": bool(user and (not user.password_hash)),
-            "email_recovery": bool(settings.smtp_host),
+            "email_recovery": is_configured(),
         }
 
     @staticmethod

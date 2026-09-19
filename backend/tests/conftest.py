@@ -6,6 +6,7 @@ from sqlalchemy.ext.asyncio import async_sessionmaker, create_async_engine
 from app.core.database import Base, get_db
 from app.main import app
 from tests.database import SessionLocal
+from tests.email_verification import verified_email
 
 
 @pytest.fixture
@@ -36,6 +37,7 @@ def client(tmp_path):
                         "name": "Persona de prueba",
                         "email": "test@example.test",
                         "password": "A-test-password-2026",
+                        "verification_token": verified_email("test@example.test"),
                     },
                 ).status_code
                 == 201

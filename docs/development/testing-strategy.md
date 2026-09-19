@@ -53,3 +53,8 @@ Las pruebas relevantes y la validación de cobertura deben ejecutarse automátic
 ## Aplicación Pomodoro
 
 `pytest` verifica permisos, aislamiento por cuenta, acciones idempotentes, esfuerzo, rutinas, etiquetas, estadísticas y recuperación. Cada caso crea su propia base temporal; nunca elimina datos existentes. Vitest y Testing Library verifican clientes, reloj y pantallas; Playwright recorre la aplicación en la vista aislada. CI exige 80 % global y comprueba migraciones sobre PostgreSQL independiente. Las dependencias se instalan desde los lockfiles. Los comandos y resultados están en el [registro de migración](migracion-pomodoro.md).
+
+
+## Validación de correo
+
+`test_email_codes.py` cubre registro y recuperación usando correo ficticio, y `test_email_provider.py` valida el contrato HTTP de Resend con transporte simulado. `email-code-form.test.tsx` verifica vencimiento, reenvío y rechazo del código; `email-codes.spec.ts` recorre ambos flujos en navegador sin enviar mensajes reales. Las pruebas E2E de enfoque utilizan la cuenta de la vista aislada, no crean cuentas saltándose la validación. Para ejecutar `tests/smoke.py`, prepara en la base aislada un correo validado y entrega `SMOKE_REGISTRATION_EMAIL` y `SMOKE_VERIFICATION_TOKEN`, además de las variables existentes; la autorización es de un solo uso.

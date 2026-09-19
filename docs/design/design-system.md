@@ -268,6 +268,12 @@ Se conserva la apariencia y comportamiento de estas composiciones existentes; no
 
 El recurso local `frontend/public/images/slow-moments.png` contiene cuatro fotografías que se encuadran mediante CSS. Se generó con la herramienta integrada imagegen usando este prompt: «Cuadrícula de cuatro fotografías editoriales sin texto ni bordes: persona tomando café tranquilamente junto a una ventana, persona disfrutando música con audífonos, manos tocando guitarra acústica y persona leyendo en un sillón. Luz cálida natural, tonos tierra y ambiente tranquilo; cada escena centrada en su cuadrante».
 
+### Composición de validación de correo
+
+`EmailCodeForm`, importado desde `@/modules/auth/components/email-code-form`, es una composición exclusiva de autenticación. Recibe `purpose="registration" | "recovery"`, `initialEmail` y `onVerified(email, token)`. Reutiliza los campos existentes, tokens globales y `Button`; no es un componente base del catálogo. Ejemplo: `<EmailCodeForm purpose="recovery" initialEmail="" onVerified={(email, token) => continuar(email, token)} />`.
+
+El primer paso solicita el correo y el segundo un código de cuatro dígitos, con teclado numérico y autocompletado `one-time-code`. Conserva ceros iniciales. El correo queda de solo lectura tras el envío; **Cambiar correo** inicia otro formulario y **Reenviar código** borra el código anterior del campo. Muestra el tiempo restante desde `expires_at`; cuando vence deshabilita la validación y explica cómo reenviar. El servidor es la autoridad sobre el vencimiento. Los errores usan `role="alert"`, la confirmación usa `role="status"` y el progreso deshabilita las acciones. Los controles se adaptan al ancho del panel, con verificación en 390 y 1280 píxeles.
+
 ### Composición de la pantalla de enfoque
 
 `OfficeGif` es una composición exclusiva del diálogo de fin de enfoque, sin props. Muestra un GIF local aleatorio de The Office por apertura, con texto alternativo y control de pausa mediante `Button` secundario. Utiliza `--border`, `--surface-subtle` y `--muted`; comienza con imagen estática si se solicita movimiento reducido y comunica errores de carga. El medio conserva su proporción dentro del ancho disponible y el diálogo permite desplazamiento vertical.

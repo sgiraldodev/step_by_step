@@ -12,6 +12,7 @@ from app.main import app
 from app.modules.auth.models import LoginSession, PasswordReset, User
 from app.modules.focus.models import Task
 from tests.database import SessionLocal
+from tests.email_verification import verified_email
 
 HEADERS = {"X-Step-Client": "web"}
 
@@ -22,6 +23,7 @@ def signup(client, username="seconduser"):
         json={
             "name": "Nombre Apellido",
             "email": f"{username}@example.test",
+            "verification_token": verified_email(f"{username}@example.test"),
             "password": "A-test-password-2026",
         },
     )
@@ -158,6 +160,7 @@ def test_email_recovery_generic_expiring_one_use_links(client, monkeypatch):
         def send_message(self, message):
             sent.append(message.get_content())
 
+    monkeypatch.setattr(settings, "email_provider", "smtp")
     monkeypatch.setattr(settings, "smtp_host", "test-mail-server")
     monkeypatch.setattr(settings, "smtp_from", "test@example.test")
     monkeypatch.setattr(settings, "app_origin", "http://localhost:3100")
@@ -191,6 +194,7 @@ def test_original_data_requires_installation_secret(client, monkeypatch):
         payload = {
             "name": "Propietario original",
             "email": "owner@example.test",
+            "verification_token": verified_email("owner@example.test"),
             "password": "Owner-password-2026",
             "setup_code": "wrong",
         }
@@ -243,6 +247,7 @@ def test_personal_names_can_repeat_and_email_is_the_only_login_identifier(client
         payload = {
             "name": "  María José Giraldo  ",
             "email": "PERSONA@example.test",
+            "verification_token": verified_email("persona@example.test"),
             "password": "  Password-with-spaces  ",
         }
         created = account.post("/api/v1/auth/register", json=payload)
@@ -261,7 +266,12 @@ def test_personal_names_can_repeat_and_email_is_the_only_login_identifier(client
         )
         assert (
             account.post(
-                "/api/v1/auth/register", json={**payload, "email": "otra@example.test"}
+                "/api/v1/auth/register",
+                json={
+                    **payload,
+                    "email": "otra@example.test",
+                    "verification_token": verified_email("otra@example.test"),
+                },
             ).status_code
             == 201
         )

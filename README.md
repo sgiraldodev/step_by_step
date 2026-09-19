@@ -40,6 +40,6 @@ Consultar [manual de usuario](docs/product/manual-usuario.md), [arquitectura](do
 
 La instalación empieza con una base nueva y vacía, según la decisión del usuario. No se copian cuentas ni historial anteriores. El repositorio original y su volumen permanecen intactos. Las migraciones conservan IDs, hashes de contraseña, propietarios e historial. No ejecutar pruebas, semillas ni restauraciones contra la base original. Cualquier reemplazo, eliminación o restauración sobre datos existentes requiere autorización específica según `AGENTS.md`.
 
-SMTP es opcional; sin él se conserva la recuperación por código personal. Una publicación externa requiere HTTPS, `COOKIE_SECURE=true`, orígenes explícitos y la política de respaldos definida en `docs/operations/`.
+El registro requiere validar el correo. Configura `EMAIL_PROVIDER=resend`, `RESEND_API_KEY` y `EMAIL_FROM` en `.env`. La recuperación también ofrece códigos por correo de cuatro dígitos válidos durante tres minutos. La integración independiente permite cambiar de proveedor; SMTP permanece como alternativa. Véase [ADR-003](docs/architecture/decisions/ADR-003-verificacion-correo-resend.md). Una publicación externa requiere HTTPS, `COOKIE_SECURE=true`, orígenes explícitos y la política de respaldos definida en `docs/operations/`.
 
 El registro pide nombre y correo; se inicia sesión y recupera acceso únicamente con correo electrónico. El nombre se usa en el saludo, admite espacios y no es único. Véase [ADR-002](docs/architecture/decisions/ADR-002-correo-y-nombre-personal.md).

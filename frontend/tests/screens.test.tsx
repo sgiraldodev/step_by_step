@@ -32,6 +32,10 @@ vi.mock('@/modules/auth/auth', () => ({
     login: vi.fn(),
     logout: vi.fn(),
     forgot: vi.fn(),
+    sendCode: vi.fn(),
+    verifyCode: vi.fn(),
+    sendRegistrationCode: vi.fn(),
+    verifyRegistrationCode: vi.fn(),
     reset: vi.fn(),
   },
 }));
@@ -160,7 +164,7 @@ describe('Pantallas migradas', () => {
     window.history.replaceState(null, '', '/acceso#registro');
     render(<AuthShell />);
     await screen.findByRole('heading', { name: 'Crea tu cuenta' });
-    expect(screen.getByLabelText('Nombre')).toBeTruthy();
+    expect(screen.getByRole('button', { name: 'Enviar código al correo' })).toBeTruthy();
     expect(screen.queryByRole('heading', { name: /Enfócate en lo importante/ })).toBeNull();
   });
   it('crea una tarea, inicia, pausa, reanuda y registra un cierre anticipado', async () => {
@@ -227,8 +231,6 @@ describe('Pantallas migradas', () => {
     fireEvent.change(screen.getByLabelText('Correo electrónico'), {
       target: { value: user.email },
     });
-    fireEvent.click(screen.getByRole('button', { name: 'Enviarme un enlace por correo' }));
-    await screen.findByText('Enlace enviado.');
     fireEvent.change(screen.getByLabelText('Código de recuperación'), {
       target: { value: 'codigo' },
     });
@@ -254,6 +256,21 @@ describe('Pantallas migradas', () => {
     render(<AuthShell />);
     await screen.findByRole('button', { name: 'Crear una cuenta' });
     fireEvent.click(screen.getByRole('button', { name: 'Crear una cuenta' }));
+    vi.mocked(authApi.sendRegistrationCode).mockResolvedValue({
+      message: 'Enviado.',
+      expires_at: new Date(Date.now() + 180000).toISOString(),
+    });
+    vi.mocked(authApi.verifyRegistrationCode).mockResolvedValue({ token: 'token-de-registro' });
+    fireEvent.change(screen.getByLabelText('Correo electrónico'), {
+      target: { value: user.email },
+    });
+    fireEvent.submit(
+      screen.getByRole('button', { name: 'Enviar código al correo' }).closest('form')!,
+    );
+    await screen.findByLabelText('Código de 4 dígitos');
+    fireEvent.change(screen.getByLabelText('Código de 4 dígitos'), { target: { value: '0123' } });
+    fireEvent.submit(screen.getByRole('button', { name: 'Validar código' }).closest('form')!);
+    await screen.findByLabelText('Nombre');
     fireEvent.change(screen.getByLabelText('Nombre'), { target: { value: user.name } });
     fireEvent.change(screen.getByLabelText('Correo electrónico'), {
       target: { value: user.email },

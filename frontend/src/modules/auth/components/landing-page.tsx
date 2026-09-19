@@ -79,7 +79,7 @@ export default function LandingPage() {
             <a href="/acceso#registro" className="primary">
               Encuentra tu ritmo <ArrowUpRight size={18} aria-hidden="true" />
             </a>
-            <a href="#beneficios" className={styles.textLink}>
+            <a href="#que-es-step-by-step" className={styles.textLink}>
               Descubre cómo <ArrowDown size={16} aria-hidden="true" />
             </a>
           </div>
@@ -102,6 +102,19 @@ export default function LandingPage() {
             </div>
             <span className={styles.rhythmDot} />
           </div>
+        </div>
+      </section>
+
+      <section id="que-es-step-by-step" className={styles.benefits} aria-labelledby="about-title">
+        <div className={styles.sectionHeading}>
+          <p className={styles.eyebrow}>TUS TAREAS Y TU TIEMPO, EN UN SOLO LUGAR</p>
+          <h2 id="about-title">Qué es Step by Step</h2>
+          <p>
+            Step by Step es una herramienta que combina una lista de tareas (ToDo) con la técnica
+            Pomodoro para organizar nuestras tareas diarias. Anota tus pendientes, elige una tarea y
+            avanza en bloques de concentración con pausas. Lleva el seguimiento de lo que completas
+            y del tiempo que dedicas a cada tarea, paso a paso.
+          </p>
         </div>
       </section>
 
