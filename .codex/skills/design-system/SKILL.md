@@ -13,21 +13,11 @@ Esta Skill aporta un procedimiento de trabajo. Las decisiones visuales concretas
 
 ## Antes de actuar
 
-Lee obligatoriamente:
+Lee `AGENTS.md` y enruta la tarea con `PROJECT_CONTEXT.md`.
 
-- `AGENTS.md`;
-- `docs/design/design-system.md`;
-- `docs/design/ux-guidelines.md`;
-- `docs/development/definition-of-done.md`;
-- documentación funcional de la pantalla o flujo afectado.
+Para una modificación visual local, carga `docs/design/design-system.md`, la documentación funcional de la pantalla y los componentes/tokens equivalentes. Agrega `docs/design/ux-guidelines.md` solo si cambia interacción, responsive o accesibilidad. Consulta la Definition of Done únicamente en las secciones aplicables al cierre.
 
-Luego inspecciona:
-
-- `components/ui` o la biblioteca compartida equivalente;
-- tokens CSS/TypeScript/Tailwind existentes;
-- componentes de producto reutilizables;
-- catálogo o página viva del Design System;
-- implementaciones similares en otros módulos.
+Inspecciona de forma dirigida la biblioteca UI, los tokens usados por el elemento, el catálogo vivo y una implementación similar. No cargues todo el frontend ni documentación backend/operacional salvo evidencia de ese impacto.
 
 ## Orden obligatorio
 

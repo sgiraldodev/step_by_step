@@ -11,19 +11,11 @@ Convertir la definición documental del proyecto en una base técnica ejecutable
 
 ## Antes de actuar
 
-Lee:
+Lee `AGENTS.md`, `PROJECT_CONTEXT.md`, `docs/development/checklist-inicio-proyecto.md` y, cuando exista, `docs/prompts/17-bootstrap-tecnico-proyecto.md`.
 
-- `AGENTS.md`;
-- `docs/prompts/_reglas-globales.md`;
-- `docs/development/checklist-inicio-proyecto.md`;
-- `docs/architecture/`;
-- `docs/design/`;
-- `docs/development/testing-strategy.md`;
-- `docs/development/definition-of-done.md`;
-- `docs/operations/environments.md`;
-- `docs/operations/deployment.md`.
+Carga solo las áreas que el bootstrap vaya a materializar: arquitectura y stack para estructura; ambientes para Docker; testing para pruebas; despliegue si incluye CI/CD; Design System si creará tokens o componentes; producto solo para identificar módulos reales.
 
-Si existe `docs/prompts/17-bootstrap-tecnico-proyecto.md`, úsalo como contrato de alcance de la tarea.
+No leas `docs/architecture/`, `docs/design/` ni otra carpeta completa. Selecciona archivos mediante el mapa y amplía solo ante una dependencia concreta.
 
 ## Condiciones previas
 

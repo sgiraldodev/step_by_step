@@ -43,3 +43,7 @@ La instalación empieza con una base nueva y vacía, según la decisión del usu
 El registro requiere validar el correo. Configura `EMAIL_PROVIDER=resend`, `RESEND_API_KEY` y `EMAIL_FROM` en `.env`. La recuperación también ofrece códigos por correo de cuatro dígitos válidos durante tres minutos. La integración independiente permite cambiar de proveedor; SMTP permanece como alternativa. Véase [ADR-003](docs/architecture/decisions/ADR-003-verificacion-correo-resend.md). Una publicación externa requiere HTTPS, `COOKIE_SECURE=true`, orígenes explícitos y la política de respaldos definida en `docs/operations/`.
 
 El registro pide nombre y correo; se inicia sesión y recupera acceso únicamente con correo electrónico. El nombre se usa en el saludo, admite espacios y no es único. Véase [ADR-002](docs/architecture/decisions/ADR-002-correo-y-nombre-personal.md).
+
+## Contexto bajo demanda
+
+`PROJECT_CONTEXT.md` funciona como índice del repositorio. Los agentes leen primero ese mapa y después cargan solo las reglas de producto, arquitectura, diseño, desarrollo u operación que correspondan a la tarea. Esto reduce consumo de contexto y evita decisiones influenciadas por documentación no relacionada.

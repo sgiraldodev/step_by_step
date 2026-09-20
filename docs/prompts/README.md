@@ -4,7 +4,7 @@
 
 Esta carpeta contiene prompts reutilizables para ejecutar tareas frecuentes de desarrollo de forma consistente entre proyectos.
 
-Los prompts no sustituyen `AGENTS.md`, la arquitectura, el Design System ni la Definition of Done. Los complementan. Antes de ejecutar cualquiera, el agente debe leer las reglas vigentes del repositorio y adaptar el trabajo al contexto real del proyecto.
+Los prompts no sustituyen `AGENTS.md`, la arquitectura, el Design System ni la Definition of Done. Los complementan. Antes de ejecutar cualquiera, el agente debe usar `PROJECT_CONTEXT.md` para cargar solo las reglas aplicables y adaptar el trabajo al contexto real del proyecto.
 
 ## Reglas compartidas
 
@@ -66,8 +66,9 @@ El usuario no debe repetir reglas ya definidas en el repositorio. El prompt debe
 La secuencia estándar vive en `_reglas-globales.md` y debe interpretarse, a alto nivel, así:
 
 ```text
-entender contexto
-→ revisar documentación
+clasificar LIGHT / STANDARD / FULL
+→ enrutar con PROJECT_CONTEXT.md
+→ revisar documentación necesaria
 → inspeccionar implementación existente
 → reutilizar antes de crear
 → proponer
