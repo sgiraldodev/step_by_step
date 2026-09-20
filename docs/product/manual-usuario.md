@@ -41,6 +41,8 @@ El botón **Configuración** en la cabecera permite elegir minutos enteros de co
 
 Al iniciar o reanudar un bloque de trabajo aparece una vista de enfoque que cubre toda la pantalla con un fondo negro degradado. Muestra el título, la cuenta regresiva y los botones **Pausar** y **Terminar**. Pausar (también con Escape) conserva el tiempo restante y regresa a la pantalla normal; **Reanudar** vuelve a la vista de enfoque. Funciona tanto para tareas como para rutinas, y se recupera al recargar si el bloque sigue activo. Al llegar a cero se cierra para mostrar la pregunta de resolución. El descanso permanece en la vista normal.
 
+Durante un bloque de enfoque, **Ventana flotante** muestra la tarea y el contador en una ventana pequeña que permanece encima de otras aplicaciones. Desde allí puedes pausar o volver a la aplicación. Al cerrar la ventana flotante se recupera la vista de enfoque; al pausar o terminar el bloque, la ventana se cierra. La opción aparece únicamente en navegadores compatibles con Document Picture-in-Picture; mantén abierta la pestaña principal mientras usas el contador.
+
 ### Rutinas diarias
 
 Durante un bloque de trabajo, **Terminar** está disponible junto a **Pausar** en la vista de enfoque y junto a **Pausar/Reanudar** en la vista normal. Permite finalizar anticipadamente la tarea o rutina, registra un ciclo utilizado y cierra el reloj, sin esperar a cero ni iniciar un descanso. Si falla el guardado, el bloque queda pausado y puede reintentarse sin duplicar ciclos. Durante el descanso no registra otro ciclo de trabajo.
