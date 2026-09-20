@@ -20,6 +20,7 @@ export default function DesignSystem() {
         <div className="flex flex-wrap gap-3">
           <Button>Guardar</Button>
           <Button variant="secondary">Cancelar</Button>
+          <Button variant="destructive">Sí, borrar</Button>
           <Button disabled>Deshabilitado</Button>
           <Button loading>Guardando…</Button>
         </div>

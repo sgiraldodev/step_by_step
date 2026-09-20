@@ -42,6 +42,7 @@ export const tasksApi = {
     request<Task>('/tasks', { method: 'POST', body: JSON.stringify({ title, priority, tag_ids }) }),
   update: (id: number, data: object) =>
     request<Task>(`/tasks/${id}`, { method: 'PATCH', body: JSON.stringify(data) }),
+  delete: (id: number) => request<void>(`/tasks/${id}`, { method: 'DELETE' }),
 };
 export const routinesApi = {
   list: () => request<RoutineDay>('/routines'),
@@ -67,4 +68,9 @@ export const statisticsApi = {
     request<Statistics>(
       `/statistics?date_from=${from}&date_to=${to}${tagId ? `&tag_id=${encodeURIComponent(tagId)}` : ''}`,
     ),
+};
+
+export const workspaceApi = {
+  clear: (keepTags: boolean) =>
+    request<void>(`/focus-data?keep_tags=${keepTags}`, { method: 'DELETE' }),
 };

@@ -16,6 +16,8 @@ La migración 004 conserva los datos originales en un usuario reservado que no p
 
 **Cambiar de tarea**, disponible en enfoque y en el temporizador normal, guarda el tiempo efectivo del bloque, vuelve a pendiente y libera el reloj. No marca la tarea terminada ni suma un ciclo completo por un bloque interrumpido. En descanso no añade más tiempo. El icono **Restaurar tarea** permite reabrir una tarea terminada sin borrar sus ciclos ni su esfuerzo histórico.
 
+El icono **Eliminar tarea** está disponible para tareas puntuales pendientes o en progreso. Pide confirmación y elimina definitivamente la tarea y su tiempo registrado, que deja de contar en las estadísticas. Si la tarea tenía un temporizador activo, este se cierra después del borrado. Las tareas terminadas no muestran esta acción.
+
 ## Inicio y operación
 
 Consultar el README del repositorio para arranque, configuración, pruebas y puertos.
@@ -26,7 +28,7 @@ La cabecera incluye un botón para alternar entre **Modo oscuro** y **Modo claro
 
 ### Etiquetas y estadísticas
 
-Cada tarea o rutina admite hasta 10 etiquetas reutilizables. El selector permite buscar, seleccionar varias con casillas, quitar chips y crear una etiqueta con nombre y color (botón o Enter). Los nombres se deduplican sin distinguir mayúsculas ni espacios repetidos. **Etiquetas/Editar** permite clasificar actividades existentes. El filtro de etiqueta afecta la lista y sus métricas.
+Cada tarea o rutina admite hasta 10 etiquetas reutilizables. El selector permite buscar, seleccionar varias al pulsar cualquier parte de la fila o su casilla, quitar chips y crear una etiqueta con nombre y color (botón o Enter). Los nombres se deduplican sin distinguir mayúsculas ni espacios repetidos. **Etiquetas/Editar** permite clasificar actividades existentes. El filtro de etiqueta afecta la lista y sus métricas.
 
 La tercera pestaña **Estadísticas** muestra tiempo de enfoque, bloques y tareas trabajadas, un gráfico de torta por etiquetas y barras diarias. Permite elegir fechas desde/hasta inclusivas (máximo 367 días) y una etiqueta. Filtrar una etiqueta selecciona los bloques que la contienen; el gráfico conserva el reparto entre todas las etiquetas de esos bloques.
 
@@ -38,6 +40,8 @@ Para revisar la interfaz con datos ficticios sin tocar PostgreSQL, después de c
 Su correo ficticio es `preview@example.test` y su contraseña `Preview-password-2026`. Estos datos de demostración solo existen en esa copia aislada.
 
 El botón **Configuración** en la cabecera permite elegir minutos enteros de concentración (1–180) y descanso (1–60), o restaurar los valores predeterminados de 30 / 5. Las preferencias se guardan en este navegador y se conservan al recargar. Los cambios se aplican al próximo bloque; un bloque activo o pausado conserva su duración original.
+
+En **Configuración**, **Limpiar mi espacio de trabajo** abre una confirmación que advierte de la pérdida permanente de tareas, rutinas, tiempo e historial estadístico. La casilla **Conservar mis etiquetas** está desmarcada inicialmente. Al confirmar, borra todas las tareas en cualquier estado y las rutinas de la cuenta; si marcas la casilla, conserva únicamente el catálogo de etiquetas. No borra la cuenta ni su acceso. El temporizador activo se cierra tras la limpieza.
 
 Al iniciar o reanudar un bloque de trabajo aparece una vista de enfoque que cubre toda la pantalla con un fondo negro degradado. Muestra el título, la cuenta regresiva y los botones **Pausar** y **Terminar**. Pausar (también con Escape) conserva el tiempo restante y regresa a la pantalla normal; **Reanudar** vuelve a la vista de enfoque. Funciona tanto para tareas como para rutinas, y se recupera al recargar si el bloque sigue activo. Al llegar a cero se cierra para mostrar la pregunta de resolución. El descanso permanece en la vista normal.
 

@@ -14,4 +14,7 @@ it('expone los estados accesibles sin perder las propiedades nativas', () => {
   );
   expect(screen.getByRole('button').getAttribute('type')).toBe('submit');
   expect(screen.getByRole('button').className).toContain('secondary-button');
+  cleanup();
+  render(<Button variant="destructive">Sí, borrar</Button>);
+  expect(screen.getByRole('button').className).toContain('destructive-button');
 });

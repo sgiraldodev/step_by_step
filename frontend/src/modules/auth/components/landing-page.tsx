@@ -69,7 +69,7 @@ export default function LandingPage() {
           <h1 id="landing-title">
             Enfócate en lo importante.
             <br />
-            <em>Disfruta lo que amas.</em>
+            <span className={styles.accentText}>Disfruta lo que amas.</span>
           </h1>
           <p className={styles.intro}>
             Hay un tiempo para avanzar y otro para saborear un café. Encuentra tu ritmo con Pomodoro
@@ -179,7 +179,7 @@ export default function LandingPage() {
           <h2 id="moments-title">
             Disfruta lo que te gusta,
             <br />
-            <em>con el tiempo que merece.</em>
+            <span className={styles.accentText}>con el tiempo que merece.</span>
           </h2>
           <p>Organizar tu día también es reservar espacio para las cosas que te hacen bien.</p>
         </div>

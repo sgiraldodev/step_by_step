@@ -1,9 +1,15 @@
 import type { ButtonHTMLAttributes } from 'react';
 
 type ButtonProps = ButtonHTMLAttributes<HTMLButtonElement> & {
-  variant?: 'primary' | 'secondary';
+  variant?: 'primary' | 'secondary' | 'destructive';
   loading?: boolean;
   ref?: React.Ref<HTMLButtonElement>;
+};
+
+const variantClasses = {
+  primary: 'primary',
+  secondary: 'secondary-button',
+  destructive: 'destructive-button',
 };
 
 export function Button({
@@ -21,7 +27,7 @@ export function Button({
       type={type}
       disabled={disabled || loading}
       aria-busy={loading || undefined}
-      className={`${variant === 'primary' ? 'primary' : 'secondary-button'} ${className}`}
+      className={`${variantClasses[variant]} ${className}`}
     >
       {children}
     </button>

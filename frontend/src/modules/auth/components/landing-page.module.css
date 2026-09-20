@@ -77,9 +77,7 @@
   letter-spacing: -0.055em;
   margin: 24px 0;
 }
-.landing em {
-  font-family: Georgia, 'Times New Roman', serif;
-  font-weight: 400;
+.accentText {
   color: var(--accent-text);
 }
 .intro {

@@ -14,6 +14,7 @@
 | RF-008 | Etiquetas | Hasta 10 por actividad, deduplicación por propietario y nombre normalizado; editar conserva las etiquetas históricas del esfuerzo. |
 | RF-009 | Estadísticas | Rango inclusivo hasta 367 días, filtros y reparto igual por etiquetas; excluir pausas/descansos y ciclos antiguos sin duración. |
 | RF-010 | Tema | Claro/oscuro con preferencia persistida y valor inicial del sistema. |
+| RF-011 | Eliminación de datos de enfoque | Eliminar tareas puntuales pendientes o en progreso junto con su historial; limpiar tareas, rutinas y estadísticas del propietario con confirmación y opción de conservar etiquetas. La cuenta permanece. |
 
 ## Requisitos no funcionales
 

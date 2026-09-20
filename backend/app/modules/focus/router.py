@@ -16,7 +16,13 @@ from app.modules.focus.schemas import (
     TaskRead,
     TaskUpdate,
 )
-from app.modules.focus.service import RoutineService, StatisticsService, TagService, TaskService
+from app.modules.focus.service import (
+    RoutineService,
+    StatisticsService,
+    TagService,
+    TaskService,
+    WorkspaceService,
+)
 
 router = APIRouter()
 
@@ -40,6 +46,16 @@ async def get_task(task_id: int, db: DB, user: CurrentUser):
 @router.put("/tasks/{task_id}", response_model=TaskRead, include_in_schema=False)
 async def update_task(task_id: int, data: TaskUpdate, db: DB, user: CurrentUser):
     return await TaskService.update(db, task_id, data)
+
+
+@router.delete("/tasks/{task_id}", status_code=204)
+async def delete_task(task_id: int, db: DB, user: CurrentUser):
+    await TaskService.delete(db, task_id)
+
+
+@router.delete("/focus-data", status_code=204)
+async def clear_focus_data(db: DB, user: CurrentUser, keep_tags: bool = False):
+    await WorkspaceService.clear(db, keep_tags)
 
 
 @router.post("/routines", response_model=RoutineRead, status_code=201)

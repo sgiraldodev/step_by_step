@@ -10,7 +10,14 @@ import DailyRoutines from '@/modules/focus/components/daily-routines';
 import FocusTimer from '@/modules/focus/components/focus-timer';
 import Page from '@/app/page';
 import DesignSystem from '@/app/design-system/page';
-import { tasksApi, routinesApi, tagsApi, statisticsApi, type Task } from '@/modules/focus/tasks';
+import {
+  tasksApi,
+  routinesApi,
+  tagsApi,
+  statisticsApi,
+  workspaceApi,
+  type Task,
+} from '@/modules/focus/tasks';
 import { authApi } from '@/modules/auth/auth';
 import { businessDay, makeTimer, DEFAULT_SETTINGS } from '@/modules/focus/timer';
 
@@ -18,10 +25,11 @@ vi.mock('@/modules/focus/tasks', async (importOriginal) => {
   const original = await importOriginal<typeof import('@/modules/focus/tasks')>();
   return {
     ...original,
-    tasksApi: { list: vi.fn(), get: vi.fn(), create: vi.fn(), update: vi.fn() },
+    tasksApi: { list: vi.fn(), get: vi.fn(), create: vi.fn(), update: vi.fn(), delete: vi.fn() },
     routinesApi: { list: vi.fn(), create: vi.fn(), update: vi.fn(), history: vi.fn() },
     tagsApi: { list: vi.fn(), create: vi.fn() },
     statisticsApi: { get: vi.fn() },
+    workspaceApi: { clear: vi.fn() },
   };
 });
 vi.mock('@/modules/auth/auth', () => ({
@@ -96,6 +104,19 @@ beforeEach(() => {
     const value = { ...task(2), title, priority };
     tasks.push(value);
     return value;
+  });
+  vi.mocked(tasksApi.delete).mockImplementation(async (id) => {
+    tasks = tasks.filter((value) => value.id !== id);
+  });
+  vi.mocked(workspaceApi.clear).mockImplementation(async (keepTags) => {
+    tasks = [];
+    if (!keepTags) vi.mocked(tagsApi.list).mockResolvedValue([]);
+    vi.mocked(routinesApi.list).mockResolvedValue({
+      date: businessDay(),
+      time_zone: 'America/Bogota',
+      items: [],
+      today_tasks: [],
+    });
   });
   vi.mocked(tasksApi.update).mockImplementation(async (id, data) => {
     const changes = data as { action?: string; finished?: boolean; tag_ids?: string[] };
@@ -336,7 +357,7 @@ describe('Componentes conservados', () => {
       onCreate = vi.fn().mockResolvedValue(tag);
     render(<TagSelector tags={[tag]} selected={[]} onChange={onChange} onCreate={onCreate} />);
     fireEvent.click(screen.getByRole('button', { name: 'Mostrar etiquetas' }));
-    fireEvent.click(screen.getByRole('checkbox', { name: /Personal/ }));
+    fireEvent.click(screen.getByText('Personal').closest('label')!);
     expect(onChange).toHaveBeenCalledWith([tag.id]);
     expect(screen.getByRole('checkbox', { name: /Personal/ })).toBeTruthy();
     fireEvent.pointerDown(document.body);
@@ -365,7 +386,14 @@ describe('Componentes conservados', () => {
   });
   it('mantiene la configuración y el catálogo del Design System', async () => {
     const onSave = vi.fn();
-    render(<TimerSettingsMenu settings={DEFAULT_SETTINGS} onSave={onSave} disabled={false} />);
+    render(
+      <TimerSettingsMenu
+        settings={DEFAULT_SETTINGS}
+        onSave={onSave}
+        onClear={vi.fn()}
+        disabled={false}
+      />,
+    );
     fireEvent.click(screen.getByRole('button'));
     const dialog = await screen.findByRole('dialog');
     expect(within(dialog).getAllByRole('radio')).toHaveLength(10);
@@ -378,6 +406,83 @@ describe('Componentes conservados', () => {
     expect(screen.getByRole('heading', { name: 'Design System · Step by step' })).toBeTruthy();
     fireEvent.click(screen.getByRole('button', { name: /Modo oscuro/ }));
     expect(document.documentElement.dataset.theme).toBe('dark');
+  });
+  it('confirma antes de eliminar una tarea y retira su temporizador', async () => {
+    tasks = [task(1, 'En Progreso')];
+    localStorage.setItem(
+      `pomodoro-session-v2:${user.id}`,
+      JSON.stringify({ ...makeTimer(1, 'work'), paused: true, deadline: null }),
+    );
+    render(<Pomodoro user={user} onLogout={vi.fn()} />);
+    await screen.findByRole('button', { name: 'Eliminar tarea: Escribir propuesta' });
+    fireEvent.click(screen.getByRole('button', { name: 'Eliminar tarea: Escribir propuesta' }));
+    const confirm = screen.getByRole('dialog', { name: 'Eliminar tarea' });
+    fireEvent.click(within(confirm).getByRole('button', { name: 'Cancelar' }));
+    expect(tasksApi.delete).not.toHaveBeenCalled();
+    fireEvent.click(screen.getByRole('button', { name: 'Eliminar tarea: Escribir propuesta' }));
+    fireEvent.click(
+      within(screen.getByRole('dialog', { name: 'Eliminar tarea' })).getByRole('button', {
+        name: 'Sí, borrar',
+      }),
+    );
+    await waitFor(() => expect(tasksApi.delete).toHaveBeenCalledWith(1));
+    await waitFor(() => expect(localStorage.getItem(`pomodoro-session-v2:${user.id}`)).toBeNull());
+    expect(screen.queryByRole('button', { name: 'Eliminar tarea: Escribir propuesta' })).toBeNull();
+  });
+  it('advierte la limpieza completa y permite conservar etiquetas', async () => {
+    const onClear = vi.fn().mockResolvedValue(undefined);
+    render(
+      <TimerSettingsMenu
+        settings={DEFAULT_SETTINGS}
+        onSave={vi.fn()}
+        onClear={onClear}
+        disabled={false}
+      />,
+    );
+    fireEvent.click(screen.getByRole('button', { name: 'Configuración' }));
+    fireEvent.click(screen.getByRole('button', { name: 'Limpiar mi espacio de trabajo' }));
+    const confirm = screen.getByRole('dialog', { name: 'Limpiar mi espacio de trabajo' });
+    expect(
+      within(confirm).getByText(
+        /tareas en cualquier estado, rutinas, tiempo trabajado y estadísticas/,
+      ),
+    ).toBeTruthy();
+    const keep = within(confirm).getByRole('checkbox', { name: 'Conservar mis etiquetas' });
+    expect((keep as HTMLInputElement).checked).toBe(false);
+    fireEvent.click(within(confirm).getByRole('button', { name: 'Cancelar' }));
+    expect(onClear).not.toHaveBeenCalled();
+    fireEvent.click(screen.getByRole('button', { name: 'Limpiar mi espacio de trabajo' }));
+    fireEvent.click(screen.getByRole('checkbox', { name: 'Conservar mis etiquetas' }));
+    fireEvent.click(
+      within(screen.getByRole('dialog', { name: 'Limpiar mi espacio de trabajo' })).getByRole(
+        'button',
+        { name: 'Sí, borrar' },
+      ),
+    );
+    await waitFor(() => expect(onClear).toHaveBeenCalledWith(true));
+  });
+  it('mantiene abierta la confirmación si falla la limpieza', async () => {
+    render(
+      <TimerSettingsMenu
+        settings={DEFAULT_SETTINGS}
+        onSave={vi.fn()}
+        onClear={vi.fn().mockRejectedValue(new Error('La limpieza no se pudo completar.'))}
+        disabled={false}
+      />,
+    );
+    fireEvent.click(screen.getByRole('button', { name: 'Configuración' }));
+    fireEvent.click(screen.getByRole('button', { name: 'Limpiar mi espacio de trabajo' }));
+    fireEvent.click(
+      within(screen.getByRole('dialog', { name: 'Limpiar mi espacio de trabajo' })).getByRole(
+        'button',
+        { name: 'Sí, borrar' },
+      ),
+    );
+    expect(await screen.findByRole('alert')).toHaveProperty(
+      'textContent',
+      'La limpieza no se pudo completar.',
+    );
+    expect(screen.getByRole('dialog', { name: 'Limpiar mi espacio de trabajo' })).toBeTruthy();
   });
   it('conserva edición de etiquetas, historial y foco accesible', async () => {
     const onSave = vi.fn().mockResolvedValue(true),
