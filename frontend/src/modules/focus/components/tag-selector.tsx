@@ -1,6 +1,6 @@
 'use client';
 
-import { useId, useState } from 'react';
+import { useEffect, useId, useRef, useState } from 'react';
 import { Plus, X } from 'lucide-react';
 import type { Tag } from '@/modules/focus/tasks';
 
@@ -43,6 +43,15 @@ export default function TagSelector({
   const [color, setColor] = useState(TAG_COLORS[0]);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState('');
+  const container = useRef<HTMLDivElement>(null);
+  useEffect(() => {
+    if (!open) return;
+    function closeOutside(event: PointerEvent) {
+      if (!container.current?.contains(event.target as Node)) setOpen(false);
+    }
+    document.addEventListener('pointerdown', closeOutside, true);
+    return () => document.removeEventListener('pointerdown', closeOutside, true);
+  }, [open]);
   const normalized = query.trim().replace(/\s+/g, ' ').toLocaleLowerCase();
   const matches = tags.filter((tag) => tag.name.toLocaleLowerCase().includes(normalized));
   const exact = tags.find((tag) => tag.name.toLocaleLowerCase() === normalized);
@@ -70,7 +79,19 @@ export default function TagSelector({
     }
   }
   return (
-    <div className="tag-selector">
+    <div
+      ref={container}
+      className="tag-selector"
+      onBlur={(event) => {
+        if (!event.currentTarget.contains(event.relatedTarget as Node | null)) setOpen(false);
+      }}
+      onKeyDown={(event) => {
+        if (event.key === 'Escape') {
+          event.stopPropagation();
+          setOpen(false);
+        }
+      }}
+    >
       <label htmlFor={id} className="mb-2 block text-xs font-semibold">
         Etiquetas
       </label>
@@ -112,7 +133,7 @@ export default function TagSelector({
           }}
           placeholder="Busca o escribe una etiqueta…"
           aria-controls={`${id}-options`}
-          className="min-w-36 flex-1 bg-transparent px-1 py-1 text-xs"
+          className="min-w-36 flex-1 bg-transparent px-1 py-1 text-sm"
         />
         <button
           type="button"

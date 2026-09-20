@@ -31,11 +31,29 @@ Las excepciones deliberadas respecto a los valores por defecto del starter está
 
 La validación en navegador usa una cuenta ficticia exclusivamente en la vista aislada http://localhost:3103. No ejecutar pruebas ni semillas contra la base original ni contra cuentas reales.
 
+## Ajustes de cierre y creación de tareas
+
+Al finalizar enfoque o descanso suena un arpegio breve tipo arpa, generado localmente por el navegador. El sonido se habilita con la primera interacción; depende del permiso de reproducción del navegador y del volumen del dispositivo. Al terminar el enfoque se puede continuar la misma tarea (registra un ciclo y comienza el descanso antes del siguiente bloque), terminarla o cambiar de tarea. Cambiar registra el ciclo completado, conserva la tarea en progreso y permite seleccionar otra. Los reintentos reutilizan el identificador del bloque para evitar duplicados.
+
+En Mis tareas, el título tiene fondo y borde visibles; Agregar aparece después del selector de etiquetas. La lista de etiquetas conserva selección múltiple y se cierra al pulsar fuera, salir con el teclado o presionar Escape.
+
 ## Operación
+
+El diálogo de fin de enfoque incluye siempre un segmento con un GIF elegido aleatoriamente entre quince escenas de The Office al abrirse. La selección permanece estable durante la decisión y los reintentos de guardado. Los quince GIF y sus imágenes estáticas se sirven desde `frontend/public/gifs/the-office`, sin API externa ni claves. Se puede pausar y reproducir la animación; con movimiento reducido comienza como imagen estática. El diálogo admite desplazamiento vertical en pantallas pequeñas.
+
+La colección incluye doce escenas adicionales del [catálogo público de The Office](https://giphy.com/theoffice). Los archivos nuevos usan la versión GIF de ancho 200 px para reducir su peso. Sus fuentes se detallan en [el catálogo de GIF](../design/gifs-the-office.md).
+
+Fuentes: [Jim y Dwight](https://giphy.com/gifs/theoffice-nbc-the-office-tv-6FrujVG4mafRETQTal), [celebración de Dwight](https://giphy.com/gifs/theoffice-pWO49XP9L7TxbgQVib/) y [cumpleaños](https://giphy.com/gifs/nbc-tv-the-office-sitcom-RfSQID4Y1lMOnJlO0a), publicados por The Office y NBC en GIPHY.
 
 Consultar [README](../../README.md) para inicio y configuración. La vista de pruebas opcional se inicia con `docker compose -f compose.preview.yaml up -d --wait`; no utiliza PostgreSQL ni datos personales.
 
 Las dependencias frontend tienen lockfile; `backend/requirements.lock` conserva las versiones exactas verificadas. Para pruebas de Vitest se recomienda Node.js 22 actualizado; alternativamente, construir el target `checks` del Dockerfile y ejecutar `npm test` en ese contenedor. El navegador para Playwright puede seleccionarse con `PLAYWRIGHT_CHANNEL=msedge`.
+
+## Personalización de color
+
+Configuración incorpora «Color de la aplicación» con diez colores, incluidos rosado y lila. La selección aplica inmediatamente el color a los botones, resaltados y fondo, y se conserva en este navegador para próximas visitas. Funciona en modo claro y oscuro. La preferencia visual es independiente de los tiempos y no modifica tareas ni datos de la cuenta.
+
+Validación: 27 pruebas frontend aprobadas, ESLint, Prettier y compilación con TypeScript; flujo Playwright con datos interceptados aprobado para selección de las diez opciones, recarga, modo oscuro, teclado y móvil de 390 px. Contraste de texto blanco sobre las diez muestras de acento superior a 4,5:1.
 
 ## Ajuste posterior: identificación por correo
 

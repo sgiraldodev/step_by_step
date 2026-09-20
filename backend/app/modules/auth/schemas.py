@@ -1,4 +1,16 @@
+from typing import Literal
+
 from pydantic import BaseModel, ConfigDict, Field, field_validator
+
+AppColor = Literal[
+    "blue", "green", "teal", "cyan", "orange", "pink", "lilac", "violet", "red", "slate"
+]
+
+
+class ColorPreferenceInput(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+    app_color: AppColor
+
 
 EMAIL_PATTERN = r"^[^\s@]+@[^\s@]+\.[^\s@]+$"
 
@@ -9,6 +21,7 @@ class RegisterInput(BaseModel):
     email: str = Field(max_length=254, pattern=EMAIL_PATTERN)
     password: str = Field(min_length=10, max_length=128)
     setup_code: str | None = Field(default=None, max_length=200)
+    verification_token: str = Field(min_length=20, max_length=200)
 
     @field_validator("name", "email", mode="before")
     @classmethod
@@ -25,6 +38,10 @@ class LoginInput(BaseModel):
 class RecoveryInput(BaseModel):
     model_config = ConfigDict(extra="forbid")
     email: str = Field(max_length=254, pattern=EMAIL_PATTERN)
+
+
+class EmailCodeInput(RecoveryInput):
+    code: str = Field(pattern=r"^[0-9]{4}$")
 
 
 class ResetInput(BaseModel):

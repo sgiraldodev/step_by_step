@@ -1,6 +1,7 @@
 import Link from 'next/link';
 import { Button } from '@/components/ui/button';
 import ThemeToggle from '@/components/ui/theme-toggle';
+import ColorPicker from '@/components/ui/color-picker';
 import { TagChip } from '@/modules/focus/components/tag-selector';
 
 export default function DesignSystem() {
@@ -10,6 +11,10 @@ export default function DesignSystem() {
         <h1 className="text-3xl font-semibold">Design System · Step by step</h1>
         <ThemeToggle />
       </header>
+      <section className="panel space-y-4 p-6">
+        <h2 className="text-xl font-semibold">Personalización</h2>
+        <ColorPicker />
+      </section>
       <section className="panel space-y-4 p-6">
         <h2 className="text-xl font-semibold">Botones</h2>
         <div className="flex flex-wrap gap-3">

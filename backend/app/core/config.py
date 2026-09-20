@@ -1,3 +1,4 @@
+from typing import Literal
 from zoneinfo import ZoneInfo
 
 from pydantic import field_validator
@@ -21,6 +22,9 @@ class Settings(BaseSettings):
     smtp_from: str = ""
     smtp_user: str = ""
     smtp_password: str = ""
+    email_provider: Literal["resend", "smtp"] = "resend"
+    email_from: str = ""
+    resend_api_key: str = ""
 
     @field_validator("app_timezone")
     @classmethod

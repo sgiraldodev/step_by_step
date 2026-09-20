@@ -137,7 +137,7 @@ export default function DailyRoutines({
             <Plus size={16} />
             Crear rutina
           </Button>
-          <div className="w-full px-2 pb-2">
+          <div className="w-full pb-2">
             <TagSelector
               tags={tags}
               selected={selectedTags}

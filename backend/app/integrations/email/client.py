@@ -4,7 +4,7 @@ import smtplib
 from app.core.config import settings
 
 
-def send_reset_email(host, message):
+def send_reset_email(host, message, *, raise_on_error=False):
     try:
         with smtplib.SMTP(host, settings.smtp_port, timeout=10) as smtp:
             if settings.smtp_starttls:
@@ -16,3 +16,5 @@ def send_reset_email(host, message):
         logging.getLogger("step.auth").warning(
             "No fue posible enviar un correo de recuperación. Revisa la configuración SMTP."
         )
+        if raise_on_error:
+            raise

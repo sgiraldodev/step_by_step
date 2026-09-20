@@ -7,9 +7,12 @@ import { KeyRound, LockKeyhole, Timer } from 'lucide-react';
 import { authApi, type User } from '@/modules/auth/auth';
 import Pomodoro from '@/modules/focus/components/pomodoro';
 import ThemeToggle from '@/components/ui/theme-toggle';
+import LandingPage from './landing-page';
+import EmailCodeForm from './email-code-form';
+import ColorPreferenceProvider from '@/components/ui/color-preference-provider';
 
-type Mode = 'login' | 'register' | 'recover' | 'reset';
-export default function AuthShell() {
+type Mode = 'login' | 'register' | 'recover' | 'reset' | 'email-recover';
+export default function AuthShell({ showLanding = false }: { showLanding?: boolean }) {
   const [user, setUser] = useState<User | null>(null);
   const [ready, setReady] = useState(false);
   const [mode, setMode] = useState<Mode>('login');
@@ -18,6 +21,7 @@ export default function AuthShell() {
   const [password, setPassword] = useState('');
   const [confirmation, setConfirmation] = useState('');
   const [recovery, setRecovery] = useState('');
+  const [signupToken, setSignupToken] = useState('');
   const [newCode, setNewCode] = useState('');
   const [resetToken, setResetToken] = useState('');
   const [setupCode, setSetupCode] = useState('');
@@ -28,6 +32,7 @@ export default function AuthShell() {
   const [message, setMessage] = useState('');
   useEffect(() => {
     const fragment = new URLSearchParams(window.location.hash.slice(1));
+    if (window.location.hash === '#registro') setMode('register');
     const setup = fragment.get('setup'),
       token = fragment.get('reset');
     if (setup || token) window.history.replaceState(null, '', window.location.pathname);
@@ -61,7 +66,12 @@ export default function AuthShell() {
       authApi
         .me()
         .then((value) => {
-          if (current) setUser((previous) => (previous?.id === value.id ? previous : value));
+          if (current)
+            setUser((previous) =>
+              previous?.id === value.id && previous?.app_color === value.app_color
+                ? previous
+                : value,
+            );
         })
         .catch(() => {
           if (current) setUser(null);
@@ -94,6 +104,7 @@ export default function AuthShell() {
     setPassword('');
     setConfirmation('');
     setRecovery('');
+    setSignupToken('');
   }
   async function submit(e: FormEvent) {
     e.preventDefault();
@@ -112,7 +123,13 @@ export default function AuthShell() {
         announce(value.id);
         setPassword('');
       } else if (mode === 'register') {
-        const value = await authApi.register(name, email, password, claim ? setupCode : undefined);
+        const value = await authApi.register(
+          name,
+          email,
+          password,
+          claim ? setupCode : undefined,
+          signupToken,
+        );
         setUser(value.user);
         setNewCode(value.recovery_code);
         announce(value.user.id);
@@ -148,256 +165,290 @@ export default function AuthShell() {
     return (
       <main className="grid min-h-screen place-items-center">
         <p role="status" className="text-sm text-[var(--muted)]">
-          Abriendo tu espacio…
+          Abriendo tu espacioâ€¦
         </p>
       </main>
     );
-  if (user && !newCode) return <Pomodoro key={user.id} user={user} onLogout={logout} />;
+  if (user && !newCode)
+    return (
+      <ColorPreferenceProvider
+        key={user.id}
+        initialColor={user.app_color}
+        onSave={async (color) => {
+          const updated = await authApi.saveColor(color);
+          setUser((previous) => (previous?.id === updated.id ? updated : previous));
+        }}
+      >
+        <Pomodoro user={user} onLogout={logout} />
+      </ColorPreferenceProvider>
+    );
+  if (showLanding && !newCode && !claim && (mode === 'login' || mode === 'register'))
+    return (
+      <main>
+        <LandingPage />
+      </main>
+    );
   return (
-    <main className="flex min-h-screen flex-col items-center justify-center px-5 py-10">
-      <div className="mb-6 flex w-full max-w-md items-center justify-between gap-3">
-        <Link href="/" className="flex items-center gap-2 text-xl font-semibold">
-          <Timer className="text-[var(--accent-text)]" />
-          Step by step
-        </Link>
-        <ThemeToggle />
-      </div>
-      <section className="panel w-full max-w-md p-7">
-        {newCode ? (
-          <>
-            <KeyRound size={30} className="mb-4 text-[var(--accent-text)]" />
-            <h1 className="text-2xl font-semibold">Guarda tu código de recuperación</h1>
-            <p className="mt-4 text-sm leading-6 text-[var(--muted)]">
-              Es personal y se muestra una sola vez. Permite restablecer tu contraseña si la
-              olvidas. Guárdalo en un lugar seguro y no lo compartas.
-            </p>
-            <code className="mt-5 block select-all break-all rounded-xl border border-[var(--accent-border)] bg-[var(--accent-soft)] p-4 text-sm">
-              {newCode}
-            </code>
-            <button
-              type="button"
-              className="mt-4 text-sm text-[var(--accent-text)] underline"
-              onClick={() => {
-                const blob = new Blob(
-                  [
-                    `Step by step · Código personal de recuperación\nCorreo: ${email}\n${newCode}\n`,
-                  ],
-                  { type: 'text/plain' },
-                );
-                const url = URL.createObjectURL(blob);
-                const a = document.createElement('a');
-                a.href = url;
-                a.download = 'step-by-step-recuperacion.txt';
-                a.click();
-                URL.revokeObjectURL(url);
-              }}
-            >
-              Descargar código
-            </button>
-            {message && (
-              <p role="status" className="mt-4 text-sm">
-                {message}
+    <main>
+      <section
+        id="acceso"
+        className="flex min-h-screen scroll-mt-6 flex-col items-center justify-center px-5 py-10"
+        aria-label="Acceso a tu espacio"
+      >
+        <div className="mb-6 flex w-full max-w-md items-center justify-between gap-3">
+          <Link href="/" className="flex items-center gap-2 text-xl font-semibold">
+            <Timer className="text-[var(--accent-text)]" />
+            Step by step
+          </Link>
+          <ThemeToggle />
+        </div>
+        <section className="panel w-full max-w-md p-7">
+          {newCode ? (
+            <>
+              <KeyRound size={30} className="mb-4 text-[var(--accent-text)]" />
+              <h1 className="text-2xl font-semibold">Guarda tu código de recuperación</h1>
+              <p className="mt-4 text-sm leading-6 text-[var(--muted)]">
+                Es personal y se muestra una sola vez. Permite restablecer tu contraseña si la
+                olvidas. Guárdalo en un lugar seguro y no lo compartas.
               </p>
-            )}
-            <Button
-              type="button"
-              className="mt-6 w-full text-sm"
-              onClick={() => {
-                setNewCode('');
-                if (!user) change('login');
-              }}
-            >
-              Ya lo guardé · {user ? 'Entrar a mi espacio' : 'Iniciar sesión'}
-            </Button>
-          </>
-        ) : (
-          <>
-            <LockKeyhole size={28} className="mb-4 text-[var(--accent-text)]" />
-            <h1 className="text-2xl font-semibold">
-              {mode === 'login'
-                ? 'Bienvenido a tu espacio'
-                : mode === 'register'
-                  ? 'Crea tu cuenta'
-                  : 'Recupera tu acceso'}
-            </h1>
-            <p className="mt-3 text-sm leading-6 text-[var(--muted)]">
-              {mode === 'login'
-                ? 'Tus tareas, rutinas y tiempo, en un espacio privado.'
-                : mode === 'register'
-                  ? 'Cada cuenta tiene sus propias tareas, etiquetas y estadísticas.'
-                  : resetToken
-                    ? 'Elige una nueva contraseña. El enlace solo puede usarse una vez.'
-                    : 'Usa el código personal que recibiste al crear tu cuenta.'}
-            </p>
-            <form onSubmit={submit} className="mt-6 space-y-4">
-              {mode === 'register' && (
-                <label className="block text-xs font-semibold">
-                  Tu nombre
-                  <input
-                    aria-label="Nombre"
-                    autoComplete="name"
-                    required
-                    minLength={1}
-                    maxLength={100}
-                    value={name}
-                    onChange={(e) => setName(e.target.value)}
-                    className={inputClass}
-                  />
-                  <span className="mt-1 block text-[11px] font-normal text-[var(--muted)]">
-                    Como quieres que te demos la bienvenida. Ejemplo: Santiago Giraldo.
-                  </span>
-                </label>
+              <code className="mt-5 block select-all break-all rounded-xl border border-[var(--accent-border)] bg-[var(--accent-soft)] p-4 text-sm">
+                {newCode}
+              </code>
+              <button
+                type="button"
+                className="mt-4 text-sm text-[var(--accent-text)] underline"
+                onClick={() => {
+                  const blob = new Blob(
+                    [
+                      `Step by step · Código personal de recuperación\nCorreo: ${email}\n${newCode}\n`,
+                    ],
+                    { type: 'text/plain' },
+                  );
+                  const url = URL.createObjectURL(blob);
+                  const a = document.createElement('a');
+                  a.href = url;
+                  a.download = 'step-by-step-recuperacion.txt';
+                  a.click();
+                  URL.revokeObjectURL(url);
+                }}
+              >
+                Descargar código
+              </button>
+              {message && (
+                <p role="status" className="mt-4 text-sm">
+                  {message}
+                </p>
               )}
-              {!resetToken && (
-                <label className="block text-xs font-semibold">
-                  Correo electrónico
-                  <input
-                    aria-label="Correo electrónico"
-                    type="email"
-                    autoComplete="email"
-                    required
-                    maxLength={254}
-                    value={email}
-                    onChange={(e) => setEmail(e.target.value)}
-                    className={inputClass}
-                  />
-                </label>
-              )}
-              {mode === 'recover' && (
-                <label className="block text-xs font-semibold">
-                  Código personal de recuperación
-                  <input
-                    aria-label="Código de recuperación"
-                    required
-                    value={recovery}
-                    onChange={(e) => setRecovery(e.target.value)}
-                    className={inputClass}
-                    maxLength={200}
-                  />
-                </label>
-              )}
-              <label className="block text-xs font-semibold">
-                {mode === 'recover' || mode === 'reset' ? 'Nueva contraseña' : 'Contraseña'}
-                <input
-                  aria-label="Contraseña"
-                  type="password"
-                  autoComplete={mode === 'login' ? 'current-password' : 'new-password'}
-                  required
-                  minLength={mode === 'login' ? 1 : 10}
-                  maxLength={128}
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                  className={inputClass}
+              <Button
+                type="button"
+                className="mt-6 w-full text-sm"
+                onClick={() => {
+                  setNewCode('');
+                  if (!user) change('login');
+                }}
+              >
+                Ya lo guardé · {user ? 'Entrar a mi espacio' : 'Iniciar sesión'}
+              </Button>
+            </>
+          ) : (
+            <>
+              <LockKeyhole size={28} className="mb-4 text-[var(--accent-text)]" />
+              <h1 className="text-2xl font-semibold">
+                {mode === 'login'
+                  ? 'Bienvenido a tu espacio'
+                  : mode === 'register'
+                    ? 'Crea tu cuenta'
+                    : 'Recupera tu acceso'}
+              </h1>
+              <p className="mt-3 text-sm leading-6 text-[var(--muted)]">
+                {mode === 'login'
+                  ? 'Tus tareas, rutinas y tiempo, en un espacio privado.'
+                  : mode === 'register'
+                    ? signupToken
+                      ? 'Correo validado. Completa tus datos para crear tu cuenta.'
+                      : 'Valida tu correo con un código de 4 dígitos antes de crear tu cuenta.'
+                    : mode === 'email-recover'
+                      ? 'Te enviaremos un código de 4 dígitos, válido durante 3 minutos.'
+                      : resetToken
+                        ? 'Elige una nueva contraseña. El enlace solo puede usarse una vez.'
+                        : 'Usa el código personal que recibiste al crear tu cuenta.'}
+              </p>
+              {mode === 'email-recover' || (mode === 'register' && !signupToken) ? (
+                <EmailCodeForm
+                  purpose={mode === 'register' ? 'registration' : 'recovery'}
+                  initialEmail={email}
+                  onVerified={(verifiedEmail, token) => {
+                    setEmail(verifiedEmail);
+                    if (mode === 'register') setSignupToken(token);
+                    else {
+                      setResetToken(token);
+                      setMode('reset');
+                    }
+                  }}
                 />
-                {mode !== 'login' && (
-                  <span className="mt-1 block text-[11px] font-normal text-[var(--muted)]">
-                    Mínimo 10 caracteres.
-                  </span>
-                )}
-              </label>
-              {mode !== 'login' && (
-                <label className="block text-xs font-semibold">
-                  Repite la contraseña
-                  <input
-                    aria-label="Repetir contraseña"
-                    type="password"
-                    autoComplete="new-password"
-                    required
-                    minLength={10}
-                    maxLength={128}
-                    value={confirmation}
-                    onChange={(e) => setConfirmation(e.target.value)}
-                    className={inputClass}
-                  />
-                </label>
-              )}
-              {mode === 'register' && status.setup_required && (
-                <div className="rounded-xl border border-[var(--accent-border)] bg-[var(--accent-soft)] p-4">
-                  <label className="flex items-start gap-2 text-xs leading-5">
-                    <input
-                      type="checkbox"
-                      checked={claim}
-                      onChange={(e) => setClaim(e.target.checked)}
-                      className="mt-1 accent-[var(--accent)]"
-                    />
-                    Conservar las tareas existentes de esta instalación
-                  </label>
-                  {claim && (
-                    <label className="mt-3 block text-xs">
-                      Código de instalación
+              ) : (
+                <form onSubmit={submit} className="mt-6 space-y-4">
+                  {mode === 'register' && (
+                    <label className="block text-xs font-semibold">
+                      Tu nombre
                       <input
-                        aria-label="Código de instalación"
-                        type="password"
+                        aria-label="Nombre"
+                        autoComplete="name"
                         required
-                        value={setupCode}
-                        onChange={(e) => setSetupCode(e.target.value)}
+                        minLength={1}
+                        maxLength={100}
+                        value={name}
+                        onChange={(e) => setName(e.target.value)}
+                        className={inputClass}
+                      />
+                      <span className="mt-1 block text-[11px] font-normal text-[var(--muted)]">
+                        Como quieres que te demos la bienvenida. Ejemplo: Santiago Giraldo.
+                      </span>
+                    </label>
+                  )}
+                  {!resetToken && (
+                    <label className="block text-xs font-semibold">
+                      Correo electrónico
+                      <input
+                        aria-label="Correo electrónico"
+                        readOnly={mode === 'register' && !!signupToken}
+                        type="email"
+                        autoComplete="email"
+                        required
+                        maxLength={254}
+                        value={email}
+                        onChange={(e) => setEmail(e.target.value)}
                         className={inputClass}
                       />
                     </label>
                   )}
-                </div>
+                  {mode === 'recover' && (
+                    <label className="block text-xs font-semibold">
+                      Código personal de recuperación
+                      <input
+                        aria-label="Código de recuperación"
+                        required
+                        value={recovery}
+                        onChange={(e) => setRecovery(e.target.value)}
+                        className={inputClass}
+                        maxLength={200}
+                      />
+                    </label>
+                  )}
+                  <label className="block text-xs font-semibold">
+                    {mode === 'recover' || mode === 'reset' ? 'Nueva contraseña' : 'Contraseña'}
+                    <input
+                      aria-label="Contraseña"
+                      type="password"
+                      autoComplete={mode === 'login' ? 'current-password' : 'new-password'}
+                      required
+                      minLength={mode === 'login' ? 1 : 10}
+                      maxLength={128}
+                      value={password}
+                      onChange={(e) => setPassword(e.target.value)}
+                      className={inputClass}
+                    />
+                    {mode !== 'login' && (
+                      <span className="mt-1 block text-[11px] font-normal text-[var(--muted)]">
+                        Mínimo 10 caracteres.
+                      </span>
+                    )}
+                  </label>
+                  {mode !== 'login' && (
+                    <label className="block text-xs font-semibold">
+                      Repite la contraseña
+                      <input
+                        aria-label="Repetir contraseña"
+                        type="password"
+                        autoComplete="new-password"
+                        required
+                        minLength={10}
+                        maxLength={128}
+                        value={confirmation}
+                        onChange={(e) => setConfirmation(e.target.value)}
+                        className={inputClass}
+                      />
+                    </label>
+                  )}
+                  {mode === 'register' && status.setup_required && (
+                    <div className="rounded-xl border border-[var(--accent-border)] bg-[var(--accent-soft)] p-4">
+                      <label className="flex items-start gap-2 text-xs leading-5">
+                        <input
+                          type="checkbox"
+                          checked={claim}
+                          onChange={(e) => setClaim(e.target.checked)}
+                          className="mt-1 accent-[var(--accent)]"
+                        />
+                        Conservar las tareas existentes de esta instalación
+                      </label>
+                      {claim && (
+                        <label className="mt-3 block text-xs">
+                          Código de instalación
+                          <input
+                            aria-label="Código de instalación"
+                            type="password"
+                            required
+                            value={setupCode}
+                            onChange={(e) => setSetupCode(e.target.value)}
+                            className={inputClass}
+                          />
+                        </label>
+                      )}
+                    </div>
+                  )}
+                  {error && (
+                    <p role="alert" className="text-sm text-[var(--error-text)]">
+                      {error}
+                    </p>
+                  )}
+                  {message && (
+                    <p role="status" className="text-sm text-[var(--accent-text)]">
+                      {message}
+                    </p>
+                  )}
+                  <Button type="submit" disabled={busy} className="w-full text-sm">
+                    {busy
+                      ? 'Un momentoâ€¦'
+                      : mode === 'login'
+                        ? 'Iniciar sesión'
+                        : mode === 'register'
+                          ? 'Crear cuenta'
+                          : 'Restablecer contraseña'}
+                  </Button>
+                </form>
               )}
-              {error && (
-                <p role="alert" className="text-sm text-[var(--error-text)]">
-                  {error}
-                </p>
-              )}
-              {message && (
-                <p role="status" className="text-sm text-[var(--accent-text)]">
-                  {message}
-                </p>
-              )}
-              <Button type="submit" disabled={busy} className="w-full text-sm">
-                {busy
-                  ? 'Un momento…'
-                  : mode === 'login'
-                    ? 'Iniciar sesión'
-                    : mode === 'register'
-                      ? 'Crear cuenta'
-                      : 'Restablecer contraseña'}
-              </Button>
-            </form>
-            <div className="mt-6 flex flex-wrap justify-between gap-3 text-xs text-[var(--accent-text)]">
-              {mode === 'login' ? (
-                <>
-                  <button onClick={() => change('register')}>Crear una cuenta</button>
-                  <button onClick={() => change('recover')}>Olvidé mi contraseña</button>
-                </>
-              ) : (
-                <button
-                  onClick={() => {
-                    setResetToken('');
-                    change('login');
-                  }}
+              <div className="mt-6 flex flex-wrap justify-between gap-3 text-xs text-[var(--accent-text)]">
+                {mode === 'login' ? (
+                  <>
+                    <button onClick={() => change('register')}>Crear una cuenta</button>
+                    <button onClick={() => change('recover')}>Olvidé mi contraseña</button>
+                  </>
+                ) : (
+                  <button
+                    onClick={() => {
+                      setResetToken('');
+                      change('login');
+                    }}
+                  >
+                    Volver al inicio de sesión
+                  </button>
+                )}
+              </div>
+              {mode === 'recover' && (
+                <Button
+                  type="button"
+                  variant="secondary"
+                  className="mt-4 w-full text-sm"
+                  onClick={() => change('email-recover')}
                 >
-                  Volver al inicio de sesión
-                </button>
+                  Otro método · Enviar código al correo
+                </Button>
               )}
-            </div>
-            {mode === 'recover' && status.email_recovery && (
-              <button
-                disabled={busy || !email.trim()}
-                type="button"
-                className="mt-4 text-xs text-[var(--accent-text)] underline"
-                onClick={async () => {
-                  setBusy(true);
-                  setError('');
-                  try {
-                    setMessage((await authApi.forgot(email)).message);
-                  } catch (e) {
-                    setError(e instanceof Error ? e.message : 'No se pudo enviar el correo.');
-                  } finally {
-                    setBusy(false);
-                  }
-                }}
-              >
-                Enviarme un enlace por correo
-              </button>
-            )}
-          </>
-        )}
+            </>
+          )}
+        </section>
+        <p className="mt-6 text-xs text-[var(--muted)]">Un paso a la vez. Un espacio para ti.</p>
       </section>
-      <p className="mt-6 text-xs text-[var(--muted)]">Un paso a la vez. Un espacio para ti.</p>
     </main>
   );
 }

@@ -246,12 +246,38 @@ import {Button} from '@/components/ui/button';
 
 Import: `@/components/ui/theme-toggle`. Sin props. Alterna temas mediante dataset.theme y conserva la preferencia `step-theme`. Incluye nombre accesible; se puede operar con teclado. Ejemplo: `<ThemeToggle/>`.
 
+### ColorPicker
+
+Propósito: personalizar el color de la aplicación desde Configuración. Import: `@/components/ui/color-picker`. Sin props; ejemplo: `<ColorPicker />`. Disponible también en `/design-system`.
+
+Ofrece diez opciones: azul (original), verde, turquesa, celeste, naranja, rosado, lila, violeta, rojo y gris. Cada opción tiene nombre y muestra visual; los radios nativos permiten selección con teclado y muestran foco y selección. El cambio es inmediato e independiente del guardado de los tiempos del temporizador. No se asignan colores por edad o género.
+
+En el espacio autenticado, la preferencia se guarda en el perfil mediante `PATCH /api/v1/auth/preferences` y se restaura desde `app_color` al entrar. Cada usuario empieza en azul y conserva su elección al cerrar sesión, recargar o cambiar de navegador. No se adopta automáticamente el color local de otra cuenta. Mientras se guarda se deshabilita la selección; si falla, se recupera el color anterior y se comunica el error. Al salir se aplica azul a la pantalla pública. El modo claro/oscuro se conserva por separado. El catálogo sin sesión conserva su selección local en `step-color`, independiente de los perfiles.
+
+Las paletas viven en `globals.css` mediante `--palette-accent` y `--palette-highlight`; actualizan `--accent`, `--accent-hover`, `--accent-text`, `--accent-soft`, `--accent-border` y `--background`. Los botones mantienen texto blanco y el modo oscuro usa texto de acento más claro. Las prioridades, etiquetas y errores conservan su significado visual. La cuadrícula adapta sus columnas y Configuración permite desplazamiento vertical en pantallas pequeñas. `ColorPreferenceProvider` se importa desde `@/components/ui/color-preference-provider`, recibe `initialColor`, `onSave` asíncrono y `children`, y se monta con la identidad de la cuenta como key. Proporciona a `ColorPicker` selección, progreso y mensaje; evita que respuestas pendientes cambien el color después de salir.
+
 ### Componentes del dominio focus
 
 Imports bajo `@/modules/focus/components/`; sus contratos tipados son la fuente de props. `TagChip` en tag-selector recibe tag y children opcionales, conserva el texto y aplica el color del catálogo. Ejemplo: `<TagChip tag={{id:'personal',name:'Personal',color:'#7c3aed'}}/>`. `TagSelector` recibe tags, selected, onChange, onCreate y disabled; permite selección múltiple y creación con nombre/color. `TimerSettingsMenu` recibe settings, onSave y disabled, con diálogo nativo, validaciones y confirmación. `TagEditor` recibe target, tags, onCreate, onSave, onClose y busy, también con diálogo nativo. `FocusTimer` recibe active, title, minutes, seconds, busy, onPause, onFinish y onSwitch: el diálogo ocupa la pantalla, responde a Escape y admite pausa.
 
 Se conserva la apariencia y comportamiento de estas composiciones existentes; no recrearlas como variantes locales. Los listados usan prioridades textuales y etiquetas con nombre, evitando depender solo del color. Se mantienen carga, vacío, error y disabled. Las preferencias de movimiento reducido y el foco visible se aplican globalmente.
 
+### Composición de la página de inicio
+
+`LandingPage`, bajo `modules/auth/components`, es una composición de presentación exclusiva del inicio. Enlaza a `/acceso` para iniciar sesión y a `/acceso#registro` para registrarse; no consulta la API ni cambia contratos de autenticación. Usa los tokens globales, enlaces con las clases oficiales `primary` y `secondary-button`, `ThemeToggle` y Lucide; sus estilos de composición viven en `landing-page.module.css`. Los títulos destacados usan Georgia como acento editorial local. En móvil las secciones pasan a una columna. Las tarjetas tienen selección con `aria-pressed`, mensajes con `aria-live`, imágenes con descripción accesible y animaciones solo cuando no se solicita movimiento reducido.
+
+El recurso local `frontend/public/images/slow-moments.png` contiene cuatro fotografías que se encuadran mediante CSS. Se generó con la herramienta integrada imagegen usando este prompt: «Cuadrícula de cuatro fotografías editoriales sin texto ni bordes: persona tomando café tranquilamente junto a una ventana, persona disfrutando música con audífonos, manos tocando guitarra acústica y persona leyendo en un sillón. Luz cálida natural, tonos tierra y ambiente tranquilo; cada escena centrada en su cuadrante».
+
+### Composición de validación de correo
+
+`EmailCodeForm`, importado desde `@/modules/auth/components/email-code-form`, es una composición exclusiva de autenticación. Recibe `purpose="registration" | "recovery"`, `initialEmail` y `onVerified(email, token)`. Reutiliza los campos existentes, tokens globales y `Button`; no es un componente base del catálogo. Ejemplo: `<EmailCodeForm purpose="recovery" initialEmail="" onVerified={(email, token) => continuar(email, token)} />`.
+
+El primer paso solicita el correo y el segundo un código de cuatro dígitos, con teclado numérico y autocompletado `one-time-code`. Conserva ceros iniciales. El correo queda de solo lectura tras el envío; **Cambiar correo** inicia otro formulario y **Reenviar código** borra el código anterior del campo. Muestra el tiempo restante desde `expires_at`; cuando vence deshabilita la validación y explica cómo reenviar. El servidor es la autoridad sobre el vencimiento. Los errores usan `role="alert"`, la confirmación usa `role="status"` y el progreso deshabilita las acciones. Los controles se adaptan al ancho del panel, con verificación en 390 y 1280 píxeles.
+
 ### Composición de la pantalla de enfoque
+
+`OfficeGif` es una composición exclusiva del diálogo de fin de enfoque, sin props. Muestra un GIF local aleatorio de The Office por apertura, con texto alternativo y control de pausa mediante `Button` secundario. Utiliza `--border`, `--surface-subtle` y `--muted`; comienza con imagen estática si se solicita movimiento reducido y comunica errores de carga. El medio conserva su proporción dentro del ancho disponible y el diálogo permite desplazamiento vertical.
+
+El título de tarea utiliza fondo `--surface` y borde `--border` sobre el contenedor `--surface-subtle`. Agregar se ubica debajo de las etiquetas y ocupa el ancho disponible. `TagSelector` conserva la selección múltiple mientras está abierto y se cierra con clic exterior, salida de foco o Escape. El diálogo de fin de enfoque ofrece continuar la misma tarea, terminarla o cambiar de tarea; todas las opciones registran el ciclo completado.
 
 `TaskList` y `TimerPanel` reutilizan los tokens y componentes del catálogo. Reciben datos y callbacks explícitos; la pantalla coordina acciones mediante los hooks `useFocusData` y `useTimerSession`. No incorporan acceso directo a la API.

@@ -25,7 +25,8 @@ with httpx.Client(base_url=base, timeout=20, headers=request_headers) as client:
         "/auth/register",
         json={
             "name": "Persona de validación",
-            "email": identifier + "@example.test",
+            "verification_token": os.environ["SMOKE_VERIFICATION_TOKEN"],
+            "email": os.environ["SMOKE_REGISTRATION_EMAIL"],
             "password": uuid4().hex,
         },
     )

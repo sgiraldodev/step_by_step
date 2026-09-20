@@ -32,6 +32,10 @@ vi.mock('@/modules/auth/auth', () => ({
     login: vi.fn(),
     logout: vi.fn(),
     forgot: vi.fn(),
+    sendCode: vi.fn(),
+    verifyCode: vi.fn(),
+    sendRegistrationCode: vi.fn(),
+    verifyRegistrationCode: vi.fn(),
     reset: vi.fn(),
   },
 }));
@@ -151,6 +155,18 @@ afterEach(() => {
 });
 
 describe('Pantallas migradas', () => {
+  it('separa la portada del acceso y permite abrir directamente el registro', async () => {
+    render(<Page />);
+    await screen.findByRole('heading', { name: /Enfócate en lo importante/ });
+    expect(screen.queryByLabelText('Correo electrónico')).toBeNull();
+    expect(screen.queryByRole('heading', { name: 'Bienvenido a tu espacio' })).toBeNull();
+    cleanup();
+    window.history.replaceState(null, '', '/acceso#registro');
+    render(<AuthShell />);
+    await screen.findByRole('heading', { name: 'Crea tu cuenta' });
+    expect(screen.getByRole('button', { name: 'Enviar código al correo' })).toBeTruthy();
+    expect(screen.queryByRole('heading', { name: /Enfócate en lo importante/ })).toBeNull();
+  });
   it('crea una tarea, inicia, pausa, reanuda y registra un cierre anticipado', async () => {
     render(<Pomodoro user={user} onLogout={vi.fn()} />);
     await screen.findByText('Escribir propuesta');
@@ -182,8 +198,10 @@ describe('Pantallas migradas', () => {
       JSON.stringify({ ...makeTimer(1, 'work'), phase: 'decision', remaining: 0, deadline: null }),
     );
     render(<Pomodoro user={user} onLogout={vi.fn()} />);
-    await screen.findByRole('button', { name: 'No, necesito más tiempo' });
-    fireEvent.click(screen.getByRole('button', { name: 'No, necesito más tiempo' }));
+    await screen.findByRole('button', { name: 'Continuar la misma tarea' });
+    expect(screen.getByText('Un momento de The Office')).toBeTruthy();
+    expect(screen.getByRole('img').getAttribute('src')).toMatch(/\/gifs\/the-office\/.+\.gif$/);
+    fireEvent.click(screen.getByRole('button', { name: 'Continuar la misma tarea' }));
     await waitFor(() => expect(tasks[0].cycles_invested).toBe(1));
     await screen.findByRole('button', { name: 'Cambiar de tarea' });
     fireEvent.click(screen.getByRole('button', { name: 'Cambiar de tarea' }));
@@ -207,14 +225,12 @@ describe('Pantallas migradas', () => {
     await waitFor(() => expect(routinesApi.update).toHaveBeenCalled());
   });
   it('recupera acceso, valida confirmación y presenta un código nuevo', async () => {
-    render(<Page />);
+    render(<AuthShell />);
     await screen.findByRole('button', { name: 'Olvidé mi contraseña' });
     fireEvent.click(screen.getByRole('button', { name: 'Olvidé mi contraseña' }));
     fireEvent.change(screen.getByLabelText('Correo electrónico'), {
       target: { value: user.email },
     });
-    fireEvent.click(screen.getByRole('button', { name: 'Enviarme un enlace por correo' }));
-    await screen.findByText('Enlace enviado.');
     fireEvent.change(screen.getByLabelText('Código de recuperación'), {
       target: { value: 'codigo' },
     });
@@ -240,6 +256,21 @@ describe('Pantallas migradas', () => {
     render(<AuthShell />);
     await screen.findByRole('button', { name: 'Crear una cuenta' });
     fireEvent.click(screen.getByRole('button', { name: 'Crear una cuenta' }));
+    vi.mocked(authApi.sendRegistrationCode).mockResolvedValue({
+      message: 'Enviado.',
+      expires_at: new Date(Date.now() + 180000).toISOString(),
+    });
+    vi.mocked(authApi.verifyRegistrationCode).mockResolvedValue({ token: 'token-de-registro' });
+    fireEvent.change(screen.getByLabelText('Correo electrónico'), {
+      target: { value: user.email },
+    });
+    fireEvent.submit(
+      screen.getByRole('button', { name: 'Enviar código al correo' }).closest('form')!,
+    );
+    await screen.findByLabelText('Código de 4 dígitos');
+    fireEvent.change(screen.getByLabelText('Código de 4 dígitos'), { target: { value: '0123' } });
+    fireEvent.submit(screen.getByRole('button', { name: 'Validar código' }).closest('form')!);
+    await screen.findByLabelText('Nombre');
     fireEvent.change(screen.getByLabelText('Nombre'), { target: { value: user.name } });
     fireEvent.change(screen.getByLabelText('Correo electrónico'), {
       target: { value: user.email },
@@ -307,17 +338,39 @@ describe('Componentes conservados', () => {
     fireEvent.click(screen.getByRole('button', { name: 'Mostrar etiquetas' }));
     fireEvent.click(screen.getByRole('checkbox', { name: /Personal/ }));
     expect(onChange).toHaveBeenCalledWith([tag.id]);
+    expect(screen.getByRole('checkbox', { name: /Personal/ })).toBeTruthy();
+    fireEvent.pointerDown(document.body);
+    expect(screen.queryByRole('checkbox', { name: /Personal/ })).toBeNull();
     const input = screen.getByPlaceholderText('Busca o escribe una etiqueta…');
     fireEvent.change(input, { target: { value: 'Nueva' } });
     fireEvent.keyDown(input, { key: 'Enter' });
     await waitFor(() => expect(onCreate).toHaveBeenCalled());
     fireEvent.keyDown(input, { key: 'Escape' });
   });
+  it('registra el ciclo al cambiar de tarea después de terminar el tiempo', async () => {
+    tasks = [task(1, 'En Progreso')];
+    localStorage.setItem(
+      `pomodoro-session-v2:${user.id}`,
+      JSON.stringify({ ...makeTimer(1, 'work'), phase: 'decision', remaining: 0, deadline: null }),
+    );
+    render(<Pomodoro user={user} onLogout={vi.fn()} />);
+    const dialog = await screen.findByRole('dialog', { name: 'El tiempo terminó' });
+    fireEvent.click(within(dialog).getByRole('button', { name: 'Cambiar de tarea' }));
+    await waitFor(() =>
+      expect(screen.queryByRole('dialog', { name: 'El tiempo terminó' })).toBeNull(),
+    );
+    expect(tasks[0].cycles_invested).toBe(1);
+    expect(tasks[0].status).toBe('En Progreso');
+    expect(localStorage.getItem(`pomodoro-session-v2:${user.id}`)).toBeNull();
+  });
   it('mantiene la configuración y el catálogo del Design System', async () => {
     const onSave = vi.fn();
     render(<TimerSettingsMenu settings={DEFAULT_SETTINGS} onSave={onSave} disabled={false} />);
     fireEvent.click(screen.getByRole('button'));
     const dialog = await screen.findByRole('dialog');
+    expect(within(dialog).getAllByRole('radio')).toHaveLength(10);
+    fireEvent.click(within(dialog).getByRole('radio', { name: 'Rosado' }));
+    expect(document.documentElement.dataset.color).toBe('pink');
     fireEvent.submit(dialog.querySelector('form')!);
     await waitFor(() => expect(onSave).toHaveBeenCalled());
     cleanup();
