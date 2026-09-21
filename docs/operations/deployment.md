@@ -104,19 +104,20 @@ Usar `compose.yaml` y seguir el [README](../../README.md). El servicio `migratio
 
 ## Publicación inicial de Step by step
 
-La infraestructura de producción usa `compose.production.yaml`, según [ADR-004](../architecture/decisions/ADR-004-despliegue-droplet-traefik.md). El dominio es `stepbystep.serqana.com`; el registro A de Cloudflare apunta al Droplet y permanece inicialmente en modo **Solo DNS**. Traefik obtiene un certificado Let's Encrypt y sirve HTTPS. El frontend reenvía `/api/` a la API por la red privada de Compose. Solo Traefik publica 80 y 443; PostgreSQL no publica puertos.
+La infraestructura de producción usa `compose.production.yaml`, según [ADR-004](../architecture/decisions/ADR-004-despliegue-droplet-traefik.md). El dominio es `stepbystep.serqana.com`; el registro A de Cloudflare apunta a la IP reservada del Droplet y permanece inicialmente en modo **Solo DNS**. Un Traefik compartido y administrado separadamente obtiene los certificados Let's Encrypt y sirve HTTPS para todas las aplicaciones del servidor. El frontend reenvía `/api/` a la API por la red privada de Compose. Solo Traefik publica 80 y 443; la API y PostgreSQL no publican puertos.
 
 ### Preparación del Droplet
 
 1. Mantener Ubuntu actualizado, crear un usuario administrativo con clave SSH y restringir SSH a las IP autorizadas. Instalar Docker Engine y el complemento Docker Compose con las instrucciones oficiales para Ubuntu.
 2. Configurar el firewall de DigitalOcean para permitir TCP 80 y 443 desde Internet y TCP 22 solo desde las IP administrativas. No abrir 3000, 8000 ni 5432.
 3. Conservar los respaldos automáticos del Droplet y definir un respaldo lógico periódico de PostgreSQL fuera del servidor, con retención, cifrado y una prueba de restauración en un ambiente aislado. Los respaldos de infraestructura no sustituyen esa prueba.
-4. Permitir que el Droplet lea el repositorio privado mediante una clave de despliegue de solo lectura o entregar las imágenes versionadas desde un registry. No guardar credenciales Git en el repositorio.
-5. Verificar que `stepbystep.serqana.com` resuelve a la IP pública antes de iniciar Traefik. El puerto 80 debe ser alcanzable para la validación HTTP de Let's Encrypt.
+4. Instalar el Traefik compartido fuera del directorio de la aplicación, crear la red Docker externa `platform_proxy` y configurar el resolver ACME con el nombre `letsencrypt`. Traefik es el único servicio que publica 80 y 443.
+5. Permitir que el Droplet lea el repositorio privado mediante una clave de despliegue de solo lectura o entregar las imágenes versionadas desde un registry. No guardar credenciales Git en el repositorio.
+6. Verificar que `stepbystep.serqana.com` resuelve a la IP reservada antes de desplegar la aplicación. El puerto 80 debe ser alcanzable para la validación HTTP de Let's Encrypt.
 
 ### Configuración privada
 
-En el Droplet, copiar `production.env.example` a `production.env` y sustituir todos los marcadores. Generar `POSTGRES_PASSWORD` e `INITIAL_SETUP_TOKEN` como cadenas hexadecimales aleatorias largas; la contraseña entra en una URL de conexión y no debe contener caracteres que requieran codificación. Usar un correo real para `ACME_EMAIL` y un remitente de dominio verificado para Resend. Proteger `production.env` para lectura exclusiva del usuario de despliegue. Este archivo está excluido de Git.
+En el Droplet, copiar `production.env.example` a `production.env` y sustituir todos los marcadores. Generar `POSTGRES_PASSWORD` e `INITIAL_SETUP_TOKEN` como cadenas hexadecimales aleatorias largas; la contraseña entra en una URL de conexión y no debe contener caracteres que requieran codificación. Usar un remitente de dominio verificado para Resend. El correo ACME pertenece exclusivamente a la configuración privada del Traefik compartido. Proteger ambos archivos de entorno para lectura exclusiva de sus respectivos usuarios de operación. `production.env` está excluido de Git.
 
 `IMAGE_TAG` debe ser `v` seguido del contenido exacto de `VERSION`. Las imágenes y la versión expuesta por la API se construyen con ese valor. Nunca usar `latest` para producción.
 
@@ -127,6 +128,6 @@ En el Droplet, copiar `production.env.example` a `production.env` y sustituir to
 3. En el Droplet, obtener ese TAG y comprobar que `production.env` contiene el mismo `IMAGE_TAG`.
 4. Antes de ejecutar migraciones, comprobar el respaldo de la base existente y evaluar compatibilidad del esquema. Las migraciones son un paso controlado del despliegue; nunca ejecutar restauraciones o borrados sin autorización específica.
 5. Validar la configuración con `docker compose --env-file production.env -f compose.production.yaml config --quiet`, construir con `docker compose --env-file production.env -f compose.production.yaml build api frontend` e iniciar con `docker compose --env-file production.env -f compose.production.yaml up -d --wait`. El servicio `migrations` debe terminar correctamente antes de que arranque la API.
-6. Comprobar `https://stepbystep.serqana.com`, el flujo de registro y correo, y la salud de los contenedores. Revisar logs de Traefik y API ante fallos. Activar después el proxy de Cloudflare solo con SSL/TLS **Full (strict)** y un certificado de origen válido.
+6. Comprobar `https://stepbystep.serqana.com`, el flujo de registro y correo, y la salud de los contenedores. Revisar los logs del Traefik compartido y de la API ante fallos. Activar después el proxy de Cloudflare solo con SSL/TLS **Full (strict)** y un certificado de origen válido.
 
 Este procedimiento aún es manual: CI valida y construye las imágenes, pero no ejecuta una publicación automática en el Droplet. La publicación requiere la aprobación operativa definida para producción.
