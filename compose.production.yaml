@@ -1,0 +1,128 @@
+name: step-by-step
+
+services:
+  traefik:
+    image: traefik:v3.5
+    container_name: step_by_step_traefik
+    command:
+      - --api.dashboard=false
+      - --providers.docker=true
+      - --providers.docker.exposedbydefault=false
+      - --providers.docker.network=step_by_step_proxy
+      - --entrypoints.web.address=:80
+      - --entrypoints.web.http.redirections.entrypoint.to=websecure
+      - --entrypoints.web.http.redirections.entrypoint.scheme=https
+      - --entrypoints.websecure.address=:443
+      - --certificatesresolvers.letsencrypt.acme.email=${ACME_EMAIL:?Configura ACME_EMAIL}
+      - --certificatesresolvers.letsencrypt.acme.storage=/letsencrypt/acme.json
+      - --certificatesresolvers.letsencrypt.acme.httpchallenge.entrypoint=web
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+      - traefik_letsencrypt:/letsencrypt
+    networks:
+      - proxy
+    security_opt:
+      - no-new-privileges:true
+    restart: unless-stopped
+
+  db:
+    image: postgres:17-alpine
+    container_name: step_by_step_postgres
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB:-pomodoro}
+      POSTGRES_USER: ${POSTGRES_USER:-pomodoro}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?Configura POSTGRES_PASSWORD}
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    networks:
+      - internal
+    healthcheck:
+      test: [CMD-SHELL, 'pg_isready -U "$${POSTGRES_USER}" -d "$${POSTGRES_DB}"']
+      interval: 5s
+      timeout: 5s
+      retries: 10
+    restart: unless-stopped
+
+  migrations:
+    image: step_by_step_backend:${IMAGE_TAG:?Configura IMAGE_TAG}
+    container_name: step_by_step_migrations
+    environment:
+      DATABASE_URL: postgresql+psycopg://${POSTGRES_USER:-pomodoro}:${POSTGRES_PASSWORD:?Configura POSTGRES_PASSWORD}@db:5432/${POSTGRES_DB:-pomodoro}
+    command: [alembic, upgrade, head]
+    depends_on:
+      db:
+        condition: service_healthy
+    networks:
+      - internal
+    restart: "no"
+
+  api:
+    image: step_by_step_backend:${IMAGE_TAG:?Configura IMAGE_TAG}
+    build:
+      context: ./backend
+      args:
+        APP_VERSION: ${IMAGE_TAG:?Configura IMAGE_TAG}
+    container_name: step_by_step_backend
+    environment:
+      DATABASE_URL: postgresql+psycopg://${POSTGRES_USER:-pomodoro}:${POSTGRES_PASSWORD:?Configura POSTGRES_PASSWORD}@db:5432/${POSTGRES_DB:-pomodoro}
+      APP_TIMEZONE: America/Bogota
+      APP_ORIGIN: https://stepbystep.serqana.com
+      CORS_ORIGINS: https://stepbystep.serqana.com
+      INITIAL_SETUP_TOKEN: ${INITIAL_SETUP_TOKEN:?Configura INITIAL_SETUP_TOKEN}
+      COOKIE_SECURE: "true"
+      EMAIL_PROVIDER: resend
+      EMAIL_FROM: ${EMAIL_FROM:?Configura EMAIL_FROM}
+      RESEND_API_KEY: ${RESEND_API_KEY:?Configura RESEND_API_KEY}
+      APP_ENV: production
+      LOG_LEVEL: INFO
+      SESSION_COOKIE_NAME: step_by_step_session
+    depends_on:
+      migrations:
+        condition: service_completed_successfully
+    networks:
+      - internal
+    healthcheck:
+      test: [CMD, python, -c, "import urllib.request; urllib.request.urlopen('http://localhost:8000/ready', timeout=3)"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+      start_period: 20s
+    restart: unless-stopped
+
+  frontend:
+    image: step_by_step_frontend:${IMAGE_TAG:?Configura IMAGE_TAG}
+    build: ./frontend
+    container_name: step_by_step_frontend
+    depends_on:
+      api:
+        condition: service_healthy
+    networks:
+      - internal
+      - proxy
+    labels:
+      - traefik.enable=true
+      - traefik.http.routers.step_by_step.rule=Host(`stepbystep.serqana.com`)
+      - traefik.http.routers.step_by_step.entrypoints=websecure
+      - traefik.http.routers.step_by_step.tls.certresolver=letsencrypt
+      - traefik.http.services.step_by_step.loadbalancer.server.port=3000
+    healthcheck:
+      test: [CMD, node, -e, "fetch('http://127.0.0.1:3000').then(r=>process.exit(r.ok?0:1)).catch(()=>process.exit(1))"]
+      interval: 15s
+      timeout: 5s
+      retries: 5
+      start_period: 20s
+    restart: unless-stopped
+
+volumes:
+  postgres_data:
+    name: step_by_step_postgres_data
+  traefik_letsencrypt:
+    name: step_by_step_traefik_letsencrypt
+
+networks:
+  internal:
+  proxy:
+    name: step_by_step_proxy

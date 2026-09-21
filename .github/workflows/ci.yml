@@ -67,3 +67,9 @@ jobs:
       - run: pip install -r requirements.lock
       - run: alembic upgrade head
       - run: alembic check
+  production-compose:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - run: docker compose --env-file production.env.example -f compose.production.yaml config --quiet
+      - run: docker compose --env-file production.env.example -f compose.production.yaml build api frontend

@@ -171,7 +171,9 @@ export default function TagSelector({
                 <span
                   aria-hidden="true"
                   className="flex h-4 w-4 shrink-0 items-center justify-center rounded border border-[var(--accent)]"
-                  style={{ background: selected.includes(tag.id) ? 'var(--accent)' : 'transparent' }}
+                  style={{
+                    background: selected.includes(tag.id) ? 'var(--accent)' : 'transparent',
+                  }}
                 >
                   {selected.includes(tag.id) && <Check size={12} className="text-white" />}
                 </span>

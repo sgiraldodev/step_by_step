@@ -15,6 +15,7 @@ class Settings(BaseSettings):
     cookie_secure: bool = False
     session_cookie_name: str = "step_session"
     app_env: str = "development"
+    app_version: str = "1.0.0"
     log_level: str = "INFO"
     smtp_host: str = ""
     smtp_port: int = 587
