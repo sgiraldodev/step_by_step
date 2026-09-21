@@ -30,7 +30,11 @@ async def lifespan(app):
 
 logging.basicConfig(level=settings.log_level, format="%(message)s")
 logger = logging.getLogger("step.requests")
-app = FastAPI(title="Step by step · Pomodoro Santi", version="1.0.0", lifespan=lifespan)
+app = FastAPI(
+    title="Step by step · Pomodoro Santi",
+    version=settings.app_version.removeprefix("v"),
+    lifespan=lifespan,
+)
 app.add_exception_handler(ApplicationError, application_error_handler)
 app.add_exception_handler(RequestValidationError, validation_error_handler)
 app.add_middleware(
