@@ -1,33 +1,6 @@
 name: step-by-step
 
 services:
-  traefik:
-    image: traefik:v3.5
-    container_name: step_by_step_traefik
-    command:
-      - --api.dashboard=false
-      - --providers.docker=true
-      - --providers.docker.exposedbydefault=false
-      - --providers.docker.network=step_by_step_proxy
-      - --entrypoints.web.address=:80
-      - --entrypoints.web.http.redirections.entrypoint.to=websecure
-      - --entrypoints.web.http.redirections.entrypoint.scheme=https
-      - --entrypoints.websecure.address=:443
-      - --certificatesresolvers.letsencrypt.acme.email=${ACME_EMAIL:?Configura ACME_EMAIL}
-      - --certificatesresolvers.letsencrypt.acme.storage=/letsencrypt/acme.json
-      - --certificatesresolvers.letsencrypt.acme.httpchallenge.entrypoint=web
-    ports:
-      - "80:80"
-      - "443:443"
-    volumes:
-      - /var/run/docker.sock:/var/run/docker.sock:ro
-      - traefik_letsencrypt:/letsencrypt
-    networks:
-      - proxy
-    security_opt:
-      - no-new-privileges:true
-    restart: unless-stopped
-
   db:
     image: postgres:17-alpine
     container_name: step_by_step_postgres
@@ -104,6 +77,7 @@ services:
       - proxy
     labels:
       - traefik.enable=true
+      - traefik.docker.network=platform_proxy
       - traefik.http.routers.step_by_step.rule=Host(`stepbystep.serqana.com`)
       - traefik.http.routers.step_by_step.entrypoints=websecure
       - traefik.http.routers.step_by_step.tls.certresolver=letsencrypt
@@ -119,10 +93,9 @@ services:
 volumes:
   postgres_data:
     name: step_by_step_postgres_data
-  traefik_letsencrypt:
-    name: step_by_step_traefik_letsencrypt
 
 networks:
   internal:
   proxy:
-    name: step_by_step_proxy
+    external: true
+    name: platform_proxy
