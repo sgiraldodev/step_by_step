@@ -13,8 +13,9 @@ Trabaja como un agente de ingeniería dentro de este repositorio. Preserva la co
 
 ## Contexto bajo demanda
 
-Después de leer este archivo, usa `PROJECT_CONTEXT.md` como índice de enrutamiento.
+Después de leer este archivo, usa `PROJECT_CONTEXT.md` como índice de enrutamiento y consulta `MEMORY.md` como memoria curada del conocimiento acumulado del proyecto.
 
+- Lee `MEMORY.md` antes de ejecutar la tarea y reutiliza el conocimiento durable que sea relevante.
 - Clasifica la tarea en `LIGHT`, `STANDARD` o `FULL`.
 - Lee únicamente la documentación y el código directamente relacionados.
 - No leas directorios completos, todos los ADR, todos los prompts o todas las Skills por defecto.
@@ -26,13 +27,22 @@ Después de leer este archivo, usa `PROJECT_CONTEXT.md` como índice de enrutami
 Antes de modificar código o documentación:
 
 1. Lee este archivo y cualquier `AGENTS.md` más específico dentro de la ruta objetivo.
-2. Lee `PROJECT_CONTEXT.md` e inspecciona de forma dirigida la estructura, el código y la documentación relevante.
+2. Lee `PROJECT_CONTEXT.md` y `MEMORY.md`; después inspecciona de forma dirigida la estructura, el código y la documentación relevante.
 3. Busca implementaciones equivalentes antes de crear nuevos patrones.
 4. Identifica módulos, contratos, datos, permisos, pruebas y documentación afectados.
 5. Prioriza reutilizar sobre extender y extender sobre crear.
 6. Implementa únicamente los cambios requeridos por la tarea.
 7. Ejecuta validaciones relevantes y revisa el diff final.
 8. Actualiza documentación cuando cambie el comportamiento o la arquitectura.
+
+## Memoria del proyecto
+
+- `MEMORY.md` conserva decisiones, aprendizajes, restricciones, contexto funcional y estado durable que evite volver a pedir al usuario información ya establecida.
+- No uses `MEMORY.md` como sustituto del código vigente, ADR o documentación formal. Ante conflicto, prevalece la fuente de verdad correspondiente y la memoria debe corregirse.
+- No registres secretos, credenciales, datos sensibles innecesarios, logs extensos ni resultados temporales de debugging.
+- Al cerrar una tarea, actualiza `MEMORY.md` solo si apareció conocimiento reusable en tareas futuras.
+- Mantén la memoria compacta: resume y enlaza; si una entrada crece demasiado, promuévela a la documentación formal.
+- No conviertas la memoria en un changelog ni en un historial de cada solicitud.
 
 ## Skills locales del repositorio
 
