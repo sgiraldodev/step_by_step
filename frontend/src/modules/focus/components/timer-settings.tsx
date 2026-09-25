@@ -5,14 +5,17 @@ import ColorPicker from '@/components/ui/color-picker';
 import { useEffect, useRef, useState, type FormEvent } from 'react';
 import { Settings, X } from 'lucide-react';
 import { DEFAULT_SETTINGS, validSettings, type TimerSettings } from '@/modules/focus/timer';
+import ConfirmDeleteDialog from '@/modules/focus/components/confirm-delete-dialog';
 
 export default function TimerSettingsMenu({
   settings,
   onSave,
+  onClear,
   disabled,
 }: {
   settings: TimerSettings;
   onSave: (settings: TimerSettings) => void;
+  onClear: (keepTags: boolean) => Promise<void>;
   disabled: boolean;
 }) {
   const dialog = useRef<HTMLDialogElement>(null);
@@ -20,6 +23,8 @@ export default function TimerSettingsMenu({
   const [rest, setRest] = useState(String(settings.restMinutes));
   const [error, setError] = useState('');
   const [saved, setSaved] = useState(false);
+  const [clearOpen, setClearOpen] = useState(false);
+  const [clearing, setClearing] = useState(false);
   useEffect(() => {
     if (disabled) dialog.current?.close();
   }, [disabled]);
@@ -158,7 +163,39 @@ export default function TimerSettingsMenu({
             </Button>
           </div>
         </form>
+        <div className="mt-6 border-t border-[var(--border)] pt-5">
+          <p className="text-sm font-medium">Espacio de trabajo</p>
+          <p className="mt-1 text-xs leading-5 text-[var(--muted)]">
+            Borra tus tareas, rutinas y estadísticas para empezar de nuevo.
+          </p>
+          <Button
+            type="button"
+            variant="destructive"
+            className="mt-4 text-sm"
+            onClick={() => setClearOpen(true)}
+          >
+            Limpiar mi espacio de trabajo
+          </Button>
+        </div>
       </dialog>
+      {clearOpen && (
+        <ConfirmDeleteDialog
+          title="Limpiar mi espacio de trabajo"
+          description="Se borrará toda la información registrada hasta ahora: tareas en cualquier estado, rutinas, tiempo trabajado y estadísticas. También se borrarán tus etiquetas si no eliges conservarlas. Tu cuenta y configuración permanecerán. Esta acción no se puede deshacer. ¿Deseas continuar?"
+          keepTagsOption
+          busy={clearing}
+          onConfirm={async (keepTags) => {
+            setClearing(true);
+            try {
+              await onClear(keepTags);
+              dialog.current?.close();
+            } finally {
+              setClearing(false);
+            }
+          }}
+          onClose={() => setClearOpen(false)}
+        />
+      )}
     </div>
   );
 }

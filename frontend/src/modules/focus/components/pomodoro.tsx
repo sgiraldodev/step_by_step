@@ -22,6 +22,7 @@ import {
   routinesApi,
   tasksApi,
   tagsApi,
+  workspaceApi,
   type Priority,
   type Routine,
   type Task,
@@ -135,8 +136,11 @@ export default function Pomodoro({
   function replace(task: Task) {
     setTasks((current) => current.map((t) => (t.id === task.id ? task : t)));
   }
-  async function act(action: () => Promise<void>) {
-    if (lock.current) return false;
+  async function act(action: () => Promise<void>, options: { rethrow?: boolean } = {}) {
+    if (lock.current) {
+      if (options.rethrow) throw new Error('Espera a que termine la operación anterior.');
+      return false;
+    }
     lock.current = true;
     setBusy(true);
     setError('');
@@ -145,6 +149,7 @@ export default function Pomodoro({
       return true;
     } catch (e) {
       setError(e instanceof Error ? e.message : 'Ha ocurrido un error.');
+      if (options.rethrow) throw e;
       return false;
     } finally {
       lock.current = false;
@@ -274,6 +279,34 @@ export default function Pomodoro({
       replace(await tasksApi.update(task.id, { action: 'restore' }));
     });
   }
+  async function deleteTask(task: Task) {
+    await act(
+      async () => {
+        await tasksApi.delete(task.id);
+        if (timer?.taskId === task.id) setTimer(null);
+        setTasks((current) => current.filter((item) => item.id !== task.id));
+        setStatsRevision((value) => value + 1);
+      },
+      { rethrow: true },
+    );
+  }
+  async function clearWorkspace(keepTags: boolean) {
+    await act(
+      async () => {
+        await workspaceApi.clear(keepTags);
+        setTimer(null);
+        setEditing(null);
+        setSelectedTags([]);
+        setTagFilter('');
+        setTab('Todas');
+        setSection('tasks');
+        setTasks([]);
+        setStatsRevision((value) => value + 1);
+        await load();
+      },
+      { rethrow: true },
+    );
+  }
   const remaining = timer?.remaining ?? settings.workMinutes * 60;
   const minutes = String(Math.floor(remaining / 60)).padStart(2, '0');
   const seconds = String(remaining % 60).padStart(2, '0');
@@ -320,6 +353,7 @@ export default function Pomodoro({
               settings={settings}
               disabled={!ready || busy || timer?.phase === 'decision'}
               onSave={saveSettings}
+              onClear={clearWorkspace}
             />
           </div>
         </div>
@@ -490,6 +524,7 @@ export default function Pomodoro({
                   setEditing={setEditing}
                   restore={restore}
                   start={start}
+                  onDelete={deleteTask}
                   startButtons={startButtons}
                   ready={ready}
                 />

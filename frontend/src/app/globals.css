@@ -176,6 +176,17 @@ input[type='number'] {
 .secondary-button:hover {
   background: var(--surface-hover);
 }
+.destructive-button {
+  background: var(--error-bg);
+  color: var(--error-text);
+  border: 1px solid var(--error-border);
+  border-radius: 10px;
+  padding: 12px 18px;
+  font-weight: 600;
+}
+.destructive-button:hover {
+  background: color-mix(in srgb, var(--error-bg) 80%, var(--error-border));
+}
 :focus-visible {
   outline: 2px solid var(--accent-text);
 }

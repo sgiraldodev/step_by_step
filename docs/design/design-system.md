@@ -226,18 +226,19 @@ La documentación debe reflejar la implementación real. No deben mantenerse eje
 
 ## Implementación real de Pomodoro
 
-Fuente de tokens: `frontend/src/app/globals.css`. Fondo `--background`, superficies `--surface`, `--surface-subtle`, texto `--ink`, `--secondary`, `--muted`, bordes `--border`, acción `--accent`, `--accent-hover`, `--accent-text`, `--accent-soft` y errores `--error-*`. Los valores de ambos temas se conservan desde el producto original. Fuente Arial/Helvetica/sans-serif; iconografía Lucide React. Paneles con radio 20px, botones con radio 10px y tamaño adaptable mediante composición de layout. El contenido usa max-w-6xl y cambia a dos columnas en lg; navegación compacta bajo 480px.
+Fuente de tokens: `frontend/src/app/globals.css`. Fondo `--background`, superficies `--surface`, `--surface-subtle`, texto `--ink`, `--secondary`, `--muted`, bordes `--border`, acción `--accent`, `--accent-hover`, `--accent-text`, `--accent-soft` y errores `--error-*`. Los valores de ambos temas se conservan desde el producto original. Fuente Arial/Helvetica/sans-serif, sin cursiva; los destacados pueden conservar el color de acento. Iconografía Lucide React. Paneles con radio 20px, botones con radio 10px y tamaño adaptable mediante composición de layout. El contenido usa max-w-6xl y cambia a dos columnas en lg; navegación compacta bajo 480px.
 
 Catálogo navegable: `/design-system`, con temas, botones, prioridades, etiquetas y estados.
 
 ### Button
 
-Propósito: acciones principales y secundarias. Import: `@/components/ui/button`. Props: atributos nativos, `ref`, `variant="primary" | "secondary"`, `loading` y `disabled`. Default: primary; hover, foco visible, disabled y loading. Loading deshabilita y expone aria-busy. Conserva la semántica nativa de type: declarar submit para formularios y button para acciones. ClassName admite composición de ancho, espacio y distribución; no redefinir colores ni variantes. Debe tener nombre accesible y texto de progreso cuando corresponda.
+Propósito: acciones principales, secundarias y destructivas. Import: `@/components/ui/button`. Props: atributos nativos, `ref`, `variant="primary" | "secondary" | "destructive"`, `loading` y `disabled`. Default: primary; hover, foco visible, disabled y loading. La variante destructiva usa `--error-bg`, `--error-text` y `--error-border` y se reserva para borrar datos tras una confirmación. Loading deshabilita y expone aria-busy. Conserva la semántica nativa de type: declarar submit para formularios y button para acciones. ClassName admite composición de ancho, espacio y distribución; no redefinir colores ni variantes. Debe tener nombre accesible y texto de progreso cuando corresponda.
 
 ```tsx
 import {Button} from '@/components/ui/button';
 <Button type="submit">Guardar</Button>
 <Button type="button" variant="secondary">Cancelar</Button>
+<Button type="button" variant="destructive">Sí, borrar</Button>
 <Button loading>Guardando…</Button>
 <Button disabled>Iniciar</Button>
 ```
@@ -258,13 +259,13 @@ Las paletas viven en `globals.css` mediante `--palette-accent` y `--palette-high
 
 ### Componentes del dominio focus
 
-Imports bajo `@/modules/focus/components/`; sus contratos tipados son la fuente de props. `TagChip` en tag-selector recibe tag y children opcionales, conserva el texto y aplica el color del catálogo. Ejemplo: `<TagChip tag={{id:'personal',name:'Personal',color:'#7c3aed'}}/>`. `TagSelector` recibe tags, selected, onChange, onCreate y disabled; permite selección múltiple y creación con nombre/color. `TimerSettingsMenu` recibe settings, onSave y disabled, con diálogo nativo, validaciones y confirmación. `TagEditor` recibe target, tags, onCreate, onSave, onClose y busy, también con diálogo nativo. `FocusTimer` recibe active, title, minutes, seconds, busy, onPause, onFinish y onSwitch: el diálogo ocupa la pantalla, responde a Escape y admite pausa.
+Imports bajo `@/modules/focus/components/`; sus contratos tipados son la fuente de props. `TagChip` en tag-selector recibe tag y children opcionales, conserva el texto y aplica el color del catálogo. Ejemplo: `<TagChip tag={{id:'personal',name:'Personal',color:'#7c3aed'}}/>`. `TagSelector` recibe tags, selected, onChange, onCreate y disabled; permite selección múltiple y creación con nombre/color. Cada fila de una etiqueta existente activa su casilla completa, conserva el control accesible para teclado y muestra foco y estado deshabilitado. `TimerSettingsMenu` recibe settings, onSave y disabled, con diálogo nativo, validaciones y confirmación. `TagEditor` recibe target, tags, onCreate, onSave, onClose y busy, también con diálogo nativo. `FocusTimer` recibe active, title, minutes, seconds, busy, onPause, onFinish y onSwitch: el diálogo ocupa la pantalla, responde a Escape y admite pausa.
 
 Se conserva la apariencia y comportamiento de estas composiciones existentes; no recrearlas como variantes locales. Los listados usan prioridades textuales y etiquetas con nombre, evitando depender solo del color. Se mantienen carga, vacío, error y disabled. Las preferencias de movimiento reducido y el foco visible se aplican globalmente.
 
 ### Composición de la página de inicio
 
-`LandingPage`, bajo `modules/auth/components`, es una composición de presentación exclusiva del inicio. Enlaza a `/acceso` para iniciar sesión y a `/acceso#registro` para registrarse; no consulta la API ni cambia contratos de autenticación. Usa los tokens globales, enlaces con las clases oficiales `primary` y `secondary-button`, `ThemeToggle` y Lucide; sus estilos de composición viven en `landing-page.module.css`. Los títulos destacados usan Georgia como acento editorial local. En móvil las secciones pasan a una columna. Las tarjetas tienen selección con `aria-pressed`, mensajes con `aria-live`, imágenes con descripción accesible y animaciones solo cuando no se solicita movimiento reducido.
+`LandingPage`, bajo `modules/auth/components`, es una composición de presentación exclusiva del inicio. Enlaza a `/acceso` para iniciar sesión y a `/acceso#registro` para registrarse; no consulta la API ni cambia contratos de autenticación. Usa los tokens globales, enlaces con las clases oficiales `primary` y `secondary-button`, `ThemeToggle` y Lucide; sus estilos de composición viven en `landing-page.module.css`. Los títulos destacados conservan la fuente regular del producto y usan el color de acento, sin cursiva. En móvil las secciones pasan a una columna. Las tarjetas tienen selección con `aria-pressed`, mensajes con `aria-live`, imágenes con descripción accesible y animaciones solo cuando no se solicita movimiento reducido.
 
 El recurso local `frontend/public/images/slow-moments.png` contiene cuatro fotografías que se encuadran mediante CSS. Se generó con la herramienta integrada imagegen usando este prompt: «Cuadrícula de cuatro fotografías editoriales sin texto ni bordes: persona tomando café tranquilamente junto a una ventana, persona disfrutando música con audífonos, manos tocando guitarra acústica y persona leyendo en un sillón. Luz cálida natural, tonos tierra y ambiente tranquilo; cada escena centrada en su cuadrante».
 

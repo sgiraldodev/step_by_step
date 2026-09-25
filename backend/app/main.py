@@ -36,7 +36,7 @@ app.add_exception_handler(RequestValidationError, validation_error_handler)
 app.add_middleware(
     CORSMiddleware,
     allow_origins=[v.strip() for v in settings.cors_origins.split(",") if v.strip()],
-    allow_methods=["GET", "POST", "PUT", "PATCH"],
+    allow_methods=["GET", "POST", "PUT", "PATCH", "DELETE"],
     allow_headers=["Content-Type", "X-Step-Client", "X-Request-ID"],
     allow_credentials=True,
 )

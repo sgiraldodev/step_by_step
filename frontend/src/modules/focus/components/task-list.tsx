@@ -1,5 +1,5 @@
 'use client';
-import type { FormEvent, RefObject } from 'react';
+import { useState, type FormEvent, type RefObject } from 'react';
 import {
   Check,
   Circle,
@@ -9,11 +9,13 @@ import {
   Plus,
   ListTodo,
   Timer as TimerIcon,
+  Trash2,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { priorities, type Task, type Tag, type Priority } from '@/modules/focus/tasks';
 import type { Timer } from '@/modules/focus/timer';
 import TagSelector, { TagChip } from '@/modules/focus/components/tag-selector';
+import ConfirmDeleteDialog from '@/modules/focus/components/confirm-delete-dialog';
 export const tabs = ['Todas', 'Pendientes', 'En progreso', 'Terminadas'] as const;
 export type TaskTab = (typeof tabs)[number];
 type TaskListProps = {
@@ -39,6 +41,7 @@ type TaskListProps = {
   setEditing: (value: { kind: 'task'; item: Task }) => void;
   restore: (task: Task) => Promise<void>;
   start: (task: Task) => Promise<void>;
+  onDelete: (task: Task) => Promise<void>;
   startButtons: RefObject<Map<number, HTMLButtonElement>>;
 };
 export default function TaskList({
@@ -63,9 +66,11 @@ export default function TaskList({
   setEditing,
   restore,
   start,
+  onDelete,
   startButtons,
   ready,
 }: TaskListProps) {
+  const [taskToDelete, setTaskToDelete] = useState<Task | null>(null);
   return (
     <section className="panel overflow-hidden">
       <div className="px-6 pt-6">
@@ -211,6 +216,18 @@ export default function TaskList({
                   </div>
                 </div>
                 <div className="flex items-center gap-2">
+                  {task.status !== 'Terminada' && (
+                    <button
+                      type="button"
+                      aria-label={`Eliminar tarea: ${task.title}`}
+                      title={`Eliminar tarea: ${task.title}`}
+                      disabled={busy}
+                      onClick={() => setTaskToDelete(task)}
+                      className="rounded-lg border border-[var(--error-border)] p-2.5 text-[var(--error-text)] hover:bg-[var(--error-bg)]"
+                    >
+                      <Trash2 size={17} />
+                    </button>
+                  )}
                   {task.status === 'Terminada' && (
                     <button
                       type="button"
@@ -246,6 +263,15 @@ export default function TaskList({
         <Clock3 size={13} />
         Haz clic en el reloj de una tarea para comenzar.
       </div>
+      {taskToDelete && (
+        <ConfirmDeleteDialog
+          title="Eliminar tarea"
+          description={`Se borrará «${taskToDelete.title}» y todo el tiempo registrado para esta tarea. Esta acción no se puede deshacer. ¿Deseas continuar?`}
+          busy={busy}
+          onConfirm={() => onDelete(taskToDelete)}
+          onClose={() => setTaskToDelete(null)}
+        />
+      )}
     </section>
   );
 }

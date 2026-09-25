@@ -16,5 +16,6 @@ export async function request<T>(path: string, options?: RequestInit): Promise<T
           : 'No se pudo guardar. Revisa la conexión e inténtalo otra vez.',
     );
   }
+  if (response.status === 204) return undefined as T;
   return response.json();
 }

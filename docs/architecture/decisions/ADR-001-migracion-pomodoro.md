@@ -18,6 +18,8 @@ Se mantienen las cookies con token opaco aleatorio, hash persistido, vencimiento
 
 Se conservan los IDs enteros de tareas/rutinas, los UUID existentes de usuarios/etiquetas y las revisiones 001–004. El producto no expone eliminación de entidades: desactivar rutinas y restaurar tareas conserva su historial; no se añaden deleted_at ni nuevas operaciones de borrado ficticias. Tailwind 4 y los tokens existentes se mantienen como implementación del Design System. No se agregan gestores de formularios, tablas ni estado remoto si la funcionalidad actual no los necesita.
 
+La ausencia de eliminación descrita arriba fue modificada por [ADR-004](ADR-004-eliminacion-datos-enfoque.md), a petición expresa del usuario. Las demás decisiones de esta migración se conservan.
+
 Las herramientas de CI, lint, formato y pruebas se añaden conforme al starter. SQLite solo se usa en pruebas aisladas y preview; el entorno operativo usa PostgreSQL. Los tests síncronos de inspección de datos están aislados en `tests/database.py`; la aplicación utiliza AsyncSession nativa.
 
 ## Alternativas consideradas

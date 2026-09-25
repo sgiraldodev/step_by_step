@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect, useId, useRef, useState } from 'react';
-import { Plus, X } from 'lucide-react';
+import { Check, Plus, X } from 'lucide-react';
 import type { Tag } from '@/modules/focus/tasks';
 
 export const TAG_COLORS = [
@@ -157,7 +157,7 @@ export default function TagSelector({
             {matches.map((tag) => (
               <label
                 key={tag.id}
-                className="flex cursor-pointer items-center gap-3 rounded-lg p-2 hover:bg-[var(--surface-hover)]"
+                className="relative flex cursor-pointer items-center gap-3 rounded-lg p-2 hover:bg-[var(--surface-hover)] has-[:disabled]:cursor-not-allowed has-[:disabled]:opacity-50"
               >
                 <input
                   type="checkbox"
@@ -166,8 +166,15 @@ export default function TagSelector({
                     disabled || saving || (!selected.includes(tag.id) && selected.length >= 10)
                   }
                   onChange={() => toggle(tag.id)}
-                  className="accent-[var(--accent)]"
+                  className="absolute inset-0 h-full w-full cursor-pointer rounded-lg opacity-0 focus-visible:outline-offset-[-2px] disabled:cursor-not-allowed"
                 />
+                <span
+                  aria-hidden="true"
+                  className="flex h-4 w-4 shrink-0 items-center justify-center rounded border border-[var(--accent)]"
+                  style={{ background: selected.includes(tag.id) ? 'var(--accent)' : 'transparent' }}
+                >
+                  {selected.includes(tag.id) && <Check size={12} className="text-white" />}
+                </span>
                 <TagChip tag={tag} />
               </label>
             ))}

@@ -2,11 +2,11 @@ from __future__ import annotations
 
 from datetime import date, datetime
 
-from sqlalchemy import func, select
+from sqlalchemy import delete, func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.exceptions import owner
-from app.modules.focus.models import CycleReceipt, Routine, Tag, Task
+from app.modules.focus.models import CycleReceipt, Routine, Tag, Task, routine_tags, task_tags
 
 
 class TagRepository:
@@ -150,3 +150,23 @@ class TaskRepository:
     @staticmethod
     async def receipt(db: AsyncSession, operation_id: str):
         return await db.get(CycleReceipt, operation_id)
+
+    @staticmethod
+    async def delete(db: AsyncSession, task_id: int):
+        await db.execute(delete(CycleReceipt).where(CycleReceipt.task_id == task_id))
+        await db.execute(delete(task_tags).where(task_tags.c.task_id == task_id))
+        await db.execute(delete(Task).where(Task.id == task_id, Task.owner_id == owner(db)))
+
+
+class WorkspaceRepository:
+    @staticmethod
+    async def clear(db: AsyncSession, keep_tags: bool):
+        task_ids = select(Task.id).where(Task.owner_id == owner(db))
+        routine_ids = select(Routine.id).where(Routine.owner_id == owner(db))
+        await db.execute(delete(CycleReceipt).where(CycleReceipt.task_id.in_(task_ids)))
+        await db.execute(delete(task_tags).where(task_tags.c.task_id.in_(task_ids)))
+        await db.execute(delete(routine_tags).where(routine_tags.c.routine_id.in_(routine_ids)))
+        await db.execute(delete(Task).where(Task.owner_id == owner(db)))
+        await db.execute(delete(Routine).where(Routine.owner_id == owner(db)))
+        if not keep_tags:
+            await db.execute(delete(Tag).where(Tag.owner_id == owner(db)))

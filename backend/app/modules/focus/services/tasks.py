@@ -26,6 +26,18 @@ class TaskService:
         return task
 
     @staticmethod
+    async def delete(db: Session, task_id: int):
+        task = await TaskService.get(db, task_id)
+        if task.routine_id is not None:
+            raise ApplicationError(
+                409, "Los registros de rutina se eliminan al limpiar el espacio."
+            )
+        if task.status == StatusEnum.terminada:
+            raise ApplicationError(409, "Solo puedes eliminar tareas pendientes o en progreso.")
+        await TaskRepository.delete(db, task_id)
+        await db.commit()
+
+    @staticmethod
     async def create(db: Session, data: TaskCreate):
         task = Task(
             owner_id=owner(db),
