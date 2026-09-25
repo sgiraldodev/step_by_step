@@ -12,10 +12,11 @@ Para cualquier tarea:
 
 1. Lee `AGENTS.md` y el `AGENTS.md` más específico de la ruta afectada, si existe.
 2. Lee este archivo.
-3. Clasifica la tarea como `LIGHT`, `STANDARD` o `FULL`.
-4. Identifica archivos, módulos, contratos y documentación directamente afectados.
-5. Carga únicamente las rutas indicadas por este mapa que sean necesarias.
-6. Amplía el contexto solo cuando encuentres evidencia concreta de otra dependencia o impacto.
+3. Lee `MEMORY.md` para recuperar decisiones, aprendizajes y contexto durable ya establecido.
+4. Clasifica la tarea como `LIGHT`, `STANDARD` o `FULL`.
+5. Identifica archivos, módulos, contratos y documentación directamente afectados.
+6. Carga únicamente las rutas indicadas por este mapa que sean necesarias.
+7. Amplía el contexto solo cuando encuentres evidencia concreta de otra dependencia o impacto.
 
 No leas carpetas completas por defecto. No cargues todos los ADR, prompts, Skills o documentos “por si acaso”.
 
@@ -43,6 +44,7 @@ Puede requerir varias áreas documentales y una validación integral, pero conti
 
 | Si la tarea afecta… | Consulta… |
 |---|---|
+| Conocimiento acumulado, decisiones previas, restricciones o aprendizajes | `MEMORY.md`; valida contra la fuente de verdad enlazada cuando la tarea dependa de ese dato |
 | Visión, alcance, actores o reglas funcionales | `docs/product/product-brief.md`, `docs/product/requirements.md` y secciones pertinentes de `docs/product/glossary.md` |
 | Límites de módulos, capas, dependencias o transacciones | `docs/architecture/architecture.md` |
 | Stack, librerías base o estructura técnica | `docs/architecture/stack-tecnologico.md` |
@@ -92,5 +94,7 @@ Deja de cargar contexto cuando ya puedas responder:
 Si falta una respuesta, amplía únicamente hacia la fuente que pueda resolverla.
 
 ## Mantenimiento
+
+Mantén `MEMORY.md` sincronizado cuando una tarea produzca conocimiento durable que deba reutilizarse. No dupliques allí documentación extensa: resume y enlaza la fuente formal.
 
 Actualiza este mapa cuando se cree, mueva o retire una fuente de verdad o aparezca una categoría estable de trabajo. No copies aquí otros documentos: conserva solo rutas, criterios de selección y dependencias.
