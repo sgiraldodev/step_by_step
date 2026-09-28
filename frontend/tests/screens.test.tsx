@@ -132,7 +132,7 @@ beforeEach(() => {
       changes.action === 'uncheck'
     )
       value.status = 'Pendiente';
-    if (changes.action === 'check') value.status = 'Terminada';
+    if (changes.action === 'check' || changes.action === 'complete') value.status = 'Terminada';
     return { ...value };
   });
   vi.mocked(routinesApi.list).mockResolvedValue({
@@ -176,6 +176,176 @@ afterEach(() => {
 });
 
 describe('Pantallas migradas', () => {
+  it('selecciona varias tareas, las completa y permite restaurarlas en conjunto', async () => {
+    tasks = [task(1), { ...task(2), title: 'Segunda tarea', cycles_invested: 3 }];
+    render(<Pomodoro user={user} onLogout={vi.fn()} />);
+    fireEvent.click(
+      await screen.findByRole('checkbox', { name: 'Seleccionar tarea: Escribir propuesta' }),
+    );
+    expect(
+      (
+        screen.getByRole('checkbox', {
+          name: 'Seleccionar todas las tareas visibles',
+        }) as HTMLInputElement
+      ).indeterminate,
+    ).toBe(true);
+    fireEvent.click(screen.getByRole('checkbox', { name: 'Seleccionar tarea: Segunda tarea' }));
+    fireEvent.click(screen.getByRole('button', { name: 'Completar seleccionadas' }));
+    await screen.findByText('2 tareas procesadas.');
+    expect(tasks.map((task) => task.status)).toEqual(['Terminada', 'Terminada']);
+    expect(tasks[1].cycles_invested).toBe(3);
+    fireEvent.click(screen.getByRole('tab', { name: 'Terminadas' }));
+    fireEvent.click(
+      screen.getByRole('checkbox', { name: 'Seleccionar todas las tareas visibles' }),
+    );
+    expect(
+      (screen.getByRole('button', { name: 'Eliminar seleccionadas' }) as HTMLButtonElement)
+        .disabled,
+    ).toBe(true);
+    fireEvent.click(screen.getByRole('button', { name: 'Volver a pendientes' }));
+    await screen.findByText('2 tareas procesadas.');
+    expect(tasks.map((task) => task.status)).toEqual(['Pendiente', 'Pendiente']);
+    expect(tasks[1].cycles_invested).toBe(3);
+  });
+  it('limpia la selección al cambiar filtros y solo selecciona tareas visibles', async () => {
+    tasks = [task(1), { ...task(2, 'Terminada'), title: 'Terminada' }];
+    render(<Pomodoro user={user} onLogout={vi.fn()} />);
+    fireEvent.click(
+      await screen.findByRole('checkbox', { name: 'Seleccionar todas las tareas visibles' }),
+    );
+    expect(screen.getByText('1 seleccionadas')).toBeTruthy();
+    fireEvent.click(screen.getByRole('tab', { name: 'Todas' }));
+    expect(screen.queryByRole('button', { name: 'Completar seleccionadas' })).toBeNull();
+    fireEvent.click(screen.getByRole('tab', { name: 'Pendientes' }));
+    expect(
+      (
+        screen.getByRole('checkbox', {
+          name: 'Seleccionar tarea: Escribir propuesta',
+        }) as HTMLInputElement
+      ).checked,
+    ).toBe(false);
+  });
+  it('confirma el borrado múltiple y conserva solo los fallos para reintentar', async () => {
+    tasks = [task(1), { ...task(2), title: 'Segunda tarea' }];
+    vi.mocked(tasksApi.delete).mockRejectedValueOnce(new Error('Sin conexión'));
+    render(<Pomodoro user={user} onLogout={vi.fn()} />);
+    fireEvent.click(
+      await screen.findByRole('checkbox', { name: 'Seleccionar todas las tareas visibles' }),
+    );
+    fireEvent.click(screen.getByRole('button', { name: 'Eliminar seleccionadas' }));
+    expect(tasksApi.delete).not.toHaveBeenCalled();
+    fireEvent.click(within(screen.getByRole('dialog')).getByRole('button', { name: 'Cancelar' }));
+    expect(tasksApi.delete).not.toHaveBeenCalled();
+    fireEvent.click(screen.getByRole('button', { name: 'Eliminar seleccionadas' }));
+    fireEvent.click(within(screen.getByRole('dialog')).getByRole('button', { name: 'Sí, borrar' }));
+    await screen.findByText(/1 tareas procesadas.*1 no se pudieron procesar/);
+    expect(tasks).toHaveLength(1);
+    expect(screen.getByText('1 seleccionadas')).toBeTruthy();
+    fireEvent.click(screen.getByRole('button', { name: 'Eliminar seleccionadas' }));
+    fireEvent.click(within(screen.getByRole('dialog')).getByRole('button', { name: 'Sí, borrar' }));
+    await screen.findByText('Todo empieza con una tarea');
+    expect(tasks).toHaveLength(0);
+    expect(tasksApi.delete).toHaveBeenCalledTimes(3);
+  });
+  it('bloquea cambios masivos de estado si se selecciona el reloj activo', async () => {
+    tasks = [task(1, 'En Progreso')];
+    localStorage.setItem(
+      `pomodoro-session-v2:${user.id}`,
+      JSON.stringify({ ...makeTimer(1, 'work'), paused: true, deadline: null }),
+    );
+    render(<Pomodoro user={user} onLogout={vi.fn()} />);
+    await screen.findByRole('button', { name: 'Reanudar' });
+    fireEvent.click(screen.getByRole('tab', { name: 'En progreso' }));
+    fireEvent.click(
+      screen.getByRole('checkbox', { name: 'Seleccionar todas las tareas visibles' }),
+    );
+    expect(
+      (screen.getByRole('button', { name: 'Completar seleccionadas' }) as HTMLButtonElement)
+        .disabled,
+    ).toBe(true);
+    fireEvent.click(screen.getByRole('button', { name: 'Eliminar seleccionadas' }));
+    fireEvent.click(within(screen.getByRole('dialog')).getByRole('button', { name: 'Sí, borrar' }));
+    await screen.findByText('Todo empieza con una tarea');
+    expect(screen.queryByRole('button', { name: 'Reanudar' })).toBeNull();
+  });
+  it('conserva el borrador al cerrar el modal y permite reintentar la creación', async () => {
+    render(<Pomodoro user={user} onLogout={vi.fn()} />);
+    await screen.findByText('Escribir propuesta');
+    expect(screen.queryByLabelText('Título de la tarea')).toBeNull();
+    fireEvent.click(screen.getByRole('button', { name: 'Nueva tarea' }));
+    fireEvent.change(screen.getByLabelText('Título de la tarea'), {
+      target: { value: 'Mi borrador' },
+    });
+    fireEvent.click(screen.getByRole('button', { name: 'Cancelar' }));
+    expect(screen.queryByRole('dialog')).toBeNull();
+    fireEvent.click(screen.getByRole('button', { name: 'Nueva tarea' }));
+    expect((screen.getByLabelText('Título de la tarea') as HTMLInputElement).value).toBe(
+      'Mi borrador',
+    );
+    vi.mocked(tasksApi.create).mockRejectedValueOnce(new Error('Sin conexión'));
+    fireEvent.click(screen.getByRole('button', { name: 'Crear tarea' }));
+    await within(screen.getByRole('dialog')).findByRole('alert');
+    fireEvent.click(screen.getByRole('button', { name: 'Crear tarea' }));
+    await screen.findByText('Mi borrador');
+    expect(screen.queryByRole('dialog')).toBeNull();
+  });
+  it('completa sin reloj ni ciclos, filtra las terminadas y permite restaurar', async () => {
+    render(<Pomodoro user={user} onLogout={vi.fn()} />);
+    const filters = within(screen.getByRole('tablist', { name: 'Filtrar tareas' }));
+    expect(filters.getAllByRole('tab').map((tab) => tab.getAttribute('aria-label'))).toEqual([
+      'Pendientes',
+      'En progreso',
+      'Terminadas',
+      'Todas',
+    ]);
+    expect(filters.getByRole('tab', { name: 'Pendientes' }).getAttribute('aria-selected')).toBe(
+      'true',
+    );
+    fireEvent.click(
+      await screen.findByRole('button', { name: 'Completar tarea: Escribir propuesta' }),
+    );
+    await waitFor(() => expect(tasks[0].status).toBe('Terminada'));
+    expect(tasksApi.update).toHaveBeenCalledWith(1, { action: 'complete' });
+    expect(tasks[0].cycles_invested).toBe(0);
+    expect(screen.queryByRole('dialog')).toBeNull();
+    expect(screen.queryByRole('button', { name: /Completar tarea:/ })).toBeNull();
+    fireEvent.click(screen.getByRole('tab', { name: 'Terminadas' }));
+    expect(screen.getByText('Escribir propuesta')).toBeTruthy();
+    fireEvent.click(screen.getByRole('button', { name: /Restaurar tarea:/ }));
+    await waitFor(() => expect(tasks[0].status).toBe('Pendiente'));
+    expect(tasks[0].cycles_invested).toBe(0);
+  });
+  it('conserva la tarea y permite reintentar si completar falla', async () => {
+    vi.mocked(tasksApi.update).mockRejectedValueOnce(new Error('No se pudo completar.'));
+    render(<Pomodoro user={user} onLogout={vi.fn()} />);
+    const complete = await screen.findByRole('button', { name: /Completar tarea:/ });
+    fireEvent.click(complete);
+    await screen.findByText('No se pudo completar.');
+    expect(tasks[0].status).toBe('Pendiente');
+    fireEvent.click(complete);
+    await waitFor(() => expect(tasks[0].status).toBe('Terminada'));
+  });
+  it('bloquea completar la tarea con reloj pausado pero permite completar otra', async () => {
+    tasks = [task(1, 'En Progreso'), { ...task(2), title: 'Otra tarea' }];
+    localStorage.setItem(
+      `pomodoro-session-v2:${user.id}`,
+      JSON.stringify({ ...makeTimer(1, 'work'), paused: true, deadline: null }),
+    );
+    render(<Pomodoro user={user} onLogout={vi.fn()} />);
+    await screen.findByRole('button', { name: 'Reanudar' });
+    fireEvent.click(screen.getByRole('tab', { name: 'Todas' }));
+    expect(
+      (
+        screen.getByRole('button', {
+          name: 'Completar tarea: Escribir propuesta',
+        }) as HTMLButtonElement
+      ).disabled,
+    ).toBe(true);
+    fireEvent.click(screen.getByRole('button', { name: 'Completar tarea: Otra tarea' }));
+    await waitFor(() => expect(tasks[1].status).toBe('Terminada'));
+    expect(tasks[0].status).toBe('En Progreso');
+    expect(screen.getByRole('button', { name: 'Reanudar' })).toBeTruthy();
+  });
   it('separa la portada del acceso y permite abrir directamente el registro', async () => {
     render(<Page />);
     await screen.findByRole('heading', { name: /Enfócate en lo importante/ });
@@ -191,11 +361,12 @@ describe('Pantallas migradas', () => {
   it('crea una tarea, inicia, pausa, reanuda y registra un cierre anticipado', async () => {
     render(<Pomodoro user={user} onLogout={vi.fn()} />);
     await screen.findByText('Escribir propuesta');
+    fireEvent.click(screen.getByRole('button', { name: 'Nueva tarea' }));
     fireEvent.change(screen.getByLabelText('Título de la tarea'), {
-      target: { value: 'Nueva tarea' },
+      target: { value: 'Nueva tarea de prueba' },
     });
-    fireEvent.click(screen.getByRole('button', { name: 'Agregar' }));
-    await screen.findByText('Nueva tarea');
+    fireEvent.click(screen.getByRole('button', { name: 'Crear tarea' }));
+    await screen.findByText('Nueva tarea de prueba');
     fireEvent.click(screen.getByRole('button', { name: /Iniciar.*Escribir propuesta/ }));
     await screen.findByRole('dialog');
     fireEvent.click(within(screen.getByRole('dialog')).getByRole('button', { name: 'Pausar' }));
@@ -414,6 +585,7 @@ describe('Componentes conservados', () => {
       JSON.stringify({ ...makeTimer(1, 'work'), paused: true, deadline: null }),
     );
     render(<Pomodoro user={user} onLogout={vi.fn()} />);
+    fireEvent.click(screen.getByRole('tab', { name: 'En progreso' }));
     await screen.findByRole('button', { name: 'Eliminar tarea: Escribir propuesta' });
     fireEvent.click(screen.getByRole('button', { name: 'Eliminar tarea: Escribir propuesta' }));
     const confirm = screen.getByRole('dialog', { name: 'Eliminar tarea' });

@@ -19,6 +19,15 @@ Definir una separación clara entre ambientes y evitar configuraciones ambiguas 
 - mantener diferencias entre ambientes al mínimo necesario;
 - administrar configuración centralmente desde `core/config.py` usando `pydantic-settings` en backend.
 
+## Acceso local
+
+Docker Compose permite abrir la aplicación con `http://localhost:3102` o
+`http://127.0.0.1:3102` (el puerto se ajusta mediante `FRONTEND_PORT`).
+`APP_ORIGIN` conserva la dirección canónica para los enlaces enviados por correo.
+Las operaciones de escritura requieren `X-Step-Client: web` y, cuando existe
+`Origin`, debe coincidir con `APP_ORIGIN` o uno de los orígenes explícitos de
+`CORS_ORIGINS`. No se permiten comodines ni puertos distintos a los configurados.
+
 ## Secretos
 
 Ningún secreto real debe quedar hardcodeado ni versionado en el repositorio.

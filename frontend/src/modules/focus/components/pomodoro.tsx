@@ -42,6 +42,11 @@ import FocusTimer from '@/modules/focus/components/focus-timer';
 import OfficeGif from '@/modules/focus/components/office-gif';
 import ThemeToggle from '@/components/ui/theme-toggle';
 import TaskList, { type TaskTab } from '@/modules/focus/components/task-list';
+import {
+  runTaskBatch,
+  type TaskBatchAction,
+  type TaskBatchResult,
+} from '@/modules/focus/task-batch';
 import TagEditor from '@/modules/focus/components/tag-editor';
 import StatisticsView from '@/modules/focus/components/statistics';
 import { useFocusData } from '@/modules/focus/hooks/use-focus-data';
@@ -69,7 +74,7 @@ export default function Pomodoro({
   const [busy, setBusy] = useState(false);
   const [title, setTitle] = useState('');
   const [priority, setPriority] = useState<Priority>('Media');
-  const [tab, setTab] = useState<TaskTab>('Todas');
+  const [tab, setTab] = useState<TaskTab>('Pendientes');
   const { timer, setTimer, ready, settings, saveSettings } = useTimerSession(
     user,
     timeZone,
@@ -158,8 +163,8 @@ export default function Pomodoro({
   }
   async function create(e: FormEvent) {
     e.preventDefault();
-    if (!title.trim()) return;
-    await act(async () => {
+    if (!title.trim()) return false;
+    return act(async () => {
       const task = await tasksApi.create(title.trim(), priority, selectedTags);
       setTasks((current) => [task, ...current]);
       setTitle('');
@@ -279,6 +284,12 @@ export default function Pomodoro({
       replace(await tasksApi.update(task.id, { action: 'restore' }));
     });
   }
+  async function completeTask(task: Task) {
+    if (busy || !ready || timer?.taskId === task.id) return;
+    await act(async () => {
+      replace(await tasksApi.update(task.id, { action: 'complete' }));
+    });
+  }
   async function deleteTask(task: Task) {
     await act(
       async () => {
@@ -289,6 +300,27 @@ export default function Pomodoro({
       },
       { rethrow: true },
     );
+  }
+  async function bulkAction(selected: Task[], action: TaskBatchAction): Promise<TaskBatchResult> {
+    let result: TaskBatchResult = {
+      updated: [],
+      deleted: [],
+      errors: ['Espera a que termine la operación anterior.'],
+    };
+    if (!ready || (action !== 'delete' && selected.some((task) => task.id === timer?.taskId))) {
+      return { ...result, errors: ['Resuelve el temporizador antes de cambiar el estado.'] };
+    }
+    await act(async () => {
+      result = await runTaskBatch(selected, action);
+      setTasks((current) =>
+        current
+          .filter((task) => !result.deleted.includes(task.id))
+          .map((task) => result.updated.find((updated) => updated.id === task.id) ?? task),
+      );
+      if (timer && result.deleted.includes(timer.taskId)) setTimer(null);
+      if (result.deleted.length) setStatsRevision((value) => value + 1);
+    });
+    return result;
   }
   async function clearWorkspace(keepTags: boolean) {
     await act(
@@ -325,7 +357,7 @@ export default function Pomodoro({
   return (
     <div className="min-h-screen">
       <header className="border-b border-[var(--border)] bg-[var(--surface)]">
-        <div className="mx-auto flex max-w-6xl items-center justify-between px-5 py-5 md:px-8">
+        <div className="mx-auto flex max-w-[1440px] items-center justify-between px-5 py-5 md:px-8">
           <Link href="/" className="flex items-center gap-3 font-semibold tracking-tight text-xl">
             <span className="rounded-xl bg-[var(--accent-soft)] p-2 text-[var(--accent-text)]">
               <TimerIcon size={23} />
@@ -358,7 +390,7 @@ export default function Pomodoro({
           </div>
         </div>
       </header>
-      <main className="mx-auto max-w-6xl px-5 py-10 md:px-8 md:py-12">
+      <main className="mx-auto max-w-[1440px] px-5 py-10 md:px-8 md:py-12">
         <div className="mb-8 flex flex-wrap items-end justify-between gap-4">
           <div>
             <p className="mb-3 text-sm font-medium text-[var(--accent-text)]">
@@ -503,6 +535,8 @@ export default function Pomodoro({
                 />
               ) : (
                 <TaskList
+                  selectionScope={`${tab}:${tagFilter}`}
+                  onBulkAction={bulkAction}
                   create={create}
                   title={title}
                   setTitle={setTitle}
@@ -523,6 +557,7 @@ export default function Pomodoro({
                   timer={timer}
                   setEditing={setEditing}
                   restore={restore}
+                  complete={completeTask}
                   start={start}
                   onDelete={deleteTask}
                   startButtons={startButtons}

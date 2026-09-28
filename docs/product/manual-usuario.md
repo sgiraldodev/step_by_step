@@ -1,5 +1,11 @@
 # Step by step
 
+En **Mis tareas**, **Nueva tarea** abre un modal con título, prioridad y etiquetas.
+**Crear tarea** guarda y cierra el formulario; si falla, conserva los campos para
+reintentar. **Cancelar**, cerrar o Escape conservan el borrador mientras permanezcas
+en la pantalla. El listado usa títulos más grandes y filtros de estado con icono,
+contador y selección resaltada. Se abre en **Pendientes**; el orden es **Pendientes**, **En progreso**, **Terminadas** y **Todas**. Las flechas, Inicio y Fin permiten recorrer los filtros.
+
 Gestor de tareas en español con Next.js, React, TypeScript y Tailwind CSS; API FastAPI, SQLAlchemy y PostgreSQL. Los tres servicios se ejecutan en Docker Compose.
 
 ## Cuentas y espacios privados
@@ -16,9 +22,29 @@ La migración 004 conserva los datos originales en un usuario reservado que no p
 
 **Cambiar de tarea**, disponible en enfoque y en el temporizador normal, guarda el tiempo efectivo del bloque, vuelve a pendiente y libera el reloj. No marca la tarea terminada ni suma un ciclo completo por un bloque interrumpido. En descanso no añade más tiempo. El icono **Restaurar tarea** permite reabrir una tarea terminada sin borrar sus ciclos ni su esfuerzo histórico.
 
+El icono de verificación **Completar**, con color de acento y ayuda al pasar el cursor, permite marcar una tarea puntual pendiente o en progreso como **Terminada**, aunque se haya realizado fuera del sistema. No registra tiempo ni ciclos y conserva el esfuerzo anterior. Aparece en el filtro **Terminadas** y puede reabrirse con **Restaurar tarea**. Si esa tarea tiene un temporizador abierto (incluso pausado, en descanso o esperando respuesta), resuélvelo primero desde el reloj; puedes completar otras tareas mientras tanto.
+
 El icono **Eliminar tarea** está disponible para tareas puntuales pendientes o en progreso. Pide confirmación y elimina definitivamente la tarea y su tiempo registrado, que deja de contar en las estadísticas. Si la tarea tenía un temporizador activo, este se cierra después del borrado. Las tareas terminadas no muestran esta acción.
 
 ## Inicio y operación
+
+### Selección de varias tareas
+
+La casilla a la izquierda de cada tarea sirve para seleccionarla, sin cambiar su
+estado. **Seleccionar todas las visibles** marca las tareas del filtro actual.
+Al seleccionar aparecen **Completar**, **Restaurar** (volver a pendientes) y
+**Eliminar**, junto con el contador y una **X** para cancelar la selección.
+En móvil las tres acciones comparten una fila debajo del contador.
+Cambiar de filtro de estado, etiqueta o sección limpia la selección.
+
+Completar no añade ciclos ni tiempo; volver a pendientes conserva el historial.
+Las tareas en progreso deben usar **Cambiar de tarea** para volver a pendientes.
+Si la selección incluye el temporizador abierto, se bloquea el cambio de estado.
+Para borrar tareas terminadas, primero deben volver a pendientes. El borrado
+pide confirmación con el número de tareas y elimina también su tiempo registrado;
+si incluye la tarea del reloj, este se cierra. Las operaciones se guardan por tarea:
+si alguna falla, se informa el resultado y solo permanecen seleccionadas las que
+no se pudieron procesar, para reintentar. No se deshacen los éxitos anteriores.
 
 Consultar el README del repositorio para arranque, configuración, pruebas y puertos.
 

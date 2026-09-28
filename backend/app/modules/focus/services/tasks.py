@@ -56,6 +56,7 @@ class TaskService:
             "resolve": TaskService._resolve,
             "interrupt": TaskService._interrupt,
             "restore": TaskService._restore,
+            "complete": TaskService._complete,
             "check": TaskService._check,
             "uncheck": TaskService._check,
             "start": TaskService._start,
@@ -129,6 +130,12 @@ class TaskService:
                 ],
             )
         )
+
+    @staticmethod
+    async def _complete(db, task, data):
+        if task.routine_id is not None:
+            raise ApplicationError(409, "Usa la casilla diaria para completar una rutina.")
+        task.status = StatusEnum.terminada
 
     @staticmethod
     async def _restore(db, task, data):

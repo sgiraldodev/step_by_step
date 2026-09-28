@@ -24,6 +24,22 @@ export default function DesignSystem() {
           <Button disabled>Deshabilitado</Button>
           <Button loading>Guardando…</Button>
         </div>
+        <h3 className="font-medium">Acciones compactas</h3>
+        <div className="flex flex-wrap gap-2">
+          <Button size="sm">Completar</Button>
+          <Button size="sm" variant="secondary">
+            Restaurar
+          </Button>
+          <Button size="sm" variant="destructive">
+            Eliminar
+          </Button>
+          <Button size="sm" disabled>
+            Deshabilitado
+          </Button>
+          <Button size="sm" loading>
+            Guardando…
+          </Button>
+        </div>
       </section>
       <section className="panel space-y-4 p-6">
         <h2 className="text-xl font-semibold">Prioridades y etiquetas</h2>

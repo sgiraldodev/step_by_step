@@ -69,6 +69,34 @@ Fuente: `AGENTS.md`.
 
 Fuente: `docs/development/git-strategy.md`.
 
+### Acceso local
+
+- La aplicación local se sirve desde el frontend compilado de Docker; editar
+  archivos no actualiza la pantalla. Para aplicar cambios visuales locales,
+  reconstruir y actualizar solo `frontend` con
+  `docker compose up -d --build --no-deps frontend`, y verificar el servicio.
+- El acceso local por Docker admite `localhost` y `127.0.0.1` en el puerto de
+  `FRONTEND_PORT`. La protección de escritura comprueba los orígenes explícitos
+  de `APP_ORIGIN` y `CORS_ORIGINS`; ver `docs/operations/environments.md`.
+
+### Finalización manual de tareas
+
+- La lista tiene prioridad visual: el alta se abre con **Nueva tarea** en un modal,
+  y los filtros de estado usan iconos, contadores y selección destacada. Empieza
+  en **Pendientes** y deja **Todas** al final. Las acciones de fila usan iconos
+  compactos; el espacio autenticado admite hasta 1440 px de ancho. Ver
+  `docs/design/design-system.md` y `docs/product/manual-usuario.md`.
+
+- Las tareas puntuales pueden completarse sin registrar tiempo mediante `complete`.
+  Conserva ciclos y esfuerzo, admite reintentos y se revierte con `restore`.
+  La interfaz bloquea la acción para la tarea con reloj abierto; las rutinas
+  conservan `check`. Ver `docs/product/manual-usuario.md`.
+
+- Las casillas del listado seleccionan tareas para operaciones múltiples mediante
+  los endpoints individuales existentes. La selección se limita al filtro visible;
+  los fallos conservan su selección y los éxitos no se revierten. El borrado mantiene
+  la restricción de tareas pendientes/en progreso y exige confirmación en pantalla.
+
 ## Pendientes de memoria
 
 - Sin pendientes iniciales.

@@ -29,9 +29,9 @@ class TaskCreate(BaseModel):
 
 class TaskUpdate(BaseModel):
     model_config = ConfigDict(extra="forbid", str_strip_whitespace=True)
-    action: Literal["update", "start", "resolve", "check", "uncheck", "interrupt", "restore"] = (
-        "update"
-    )
+    action: Literal[
+        "update", "start", "resolve", "check", "uncheck", "interrupt", "restore", "complete"
+    ] = "update"
     title: str | None = Field(default=None, min_length=1, max_length=300)
     priority: PriorityEnum | None = None
     status: StatusEnum | None = None
@@ -60,7 +60,7 @@ class TaskUpdate(BaseModel):
         elif self.finished is not None or self.operation_id is not None or self.seconds is not None:
             raise ValueError("finished y operation_id solo se usan con resolve")
         if (
-            self.action in {"start", "check", "uncheck", "restore"}
+            self.action in {"start", "check", "uncheck", "restore", "complete"}
             and self.model_fields_set & editable
         ):
             raise ValueError("Esta acción no acepta campos de edición")

@@ -1,5 +1,58 @@
 from uuid import uuid4
 
+import pytest
+
+from app.core import domain
+
+
+@pytest.mark.parametrize("with_effort", [False, True])
+def test_manual_completion_preserves_effort_and_can_be_restored(client, with_effort):
+    task_id = task(client)
+    path = f"/api/v1/tasks/{task_id}"
+    if with_effort:
+        client.patch(path, json={"action": "start"})
+        client.patch(
+            path,
+            json={
+                "action": "resolve",
+                "finished": False,
+                "seconds": 120,
+                "operation_id": str(uuid4()),
+            },
+        )
+    day = domain.business_date().isoformat()
+    stats_path = f"/statistics?date_from={day}&date_to={day}"
+    before = client.get(stats_path).json()
+    for _ in range(2):
+        response = client.patch(path, json={"action": "complete"})
+        assert response.status_code == 200
+        assert response.json()["status"] == "Terminada"
+        assert response.json()["cycles_invested"] == int(with_effort)
+    assert client.get(path).json()["status"] == "Terminada"
+    assert client.get(stats_path).json() == before
+    restored = client.patch(path, json={"action": "restore"})
+    assert restored.json()["status"] == "Pendiente"
+    assert restored.json()["cycles_invested"] == int(with_effort)
+
+
+@pytest.mark.parametrize("extra", [{"seconds": 10}, {"status": "Terminada"}, {"title": "Otro"}])
+def test_manual_completion_rejects_other_changes(client, extra):
+    task_id = task(client)
+    assert (
+        client.patch(f"/api/v1/tasks/{task_id}", json={"action": "complete", **extra}).status_code
+        == 422
+    )
+    assert client.get(f"/tasks/{task_id}").json()["status"] == "Pendiente"
+
+
+def test_manual_completion_does_not_bypass_routine_rules(client):
+    client.post("/routines", json={"title": "Rutina diaria"})
+    routine_task = client.get("/routines").json()["today_tasks"][0]
+    assert (
+        client.patch(f"/api/v1/tasks/{routine_task['id']}", json={"action": "complete"}).status_code
+        == 409
+    )
+
 
 def task(client):
     response = client.post("/tasks", json={"title": "Preparar propuesta", "priority": "Alta"})

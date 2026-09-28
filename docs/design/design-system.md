@@ -226,13 +226,13 @@ La documentación debe reflejar la implementación real. No deben mantenerse eje
 
 ## Implementación real de Pomodoro
 
-Fuente de tokens: `frontend/src/app/globals.css`. Fondo `--background`, superficies `--surface`, `--surface-subtle`, texto `--ink`, `--secondary`, `--muted`, bordes `--border`, acción `--accent`, `--accent-hover`, `--accent-text`, `--accent-soft` y errores `--error-*`. Los valores de ambos temas se conservan desde el producto original. Fuente Arial/Helvetica/sans-serif, sin cursiva; los destacados pueden conservar el color de acento. Iconografía Lucide React. Paneles con radio 20px, botones con radio 10px y tamaño adaptable mediante composición de layout. El contenido usa max-w-6xl y cambia a dos columnas en lg; navegación compacta bajo 480px.
+Fuente de tokens: `frontend/src/app/globals.css`. Fondo `--background`, superficies `--surface`, `--surface-subtle`, texto `--ink`, `--secondary`, `--muted`, bordes `--border`, acción `--accent`, `--accent-hover`, `--accent-text`, `--accent-soft` y errores `--error-*`. Los valores de ambos temas se conservan desde el producto original. Fuente Arial/Helvetica/sans-serif, sin cursiva; los destacados pueden conservar el color de acento. Iconografía Lucide React. Paneles con radio 20px, botones con radio 10px y tamaño adaptable mediante composición de layout. La cabecera y el contenido autenticado usan un ancho máximo de 1440 px, con márgenes internos de 20 px (32 px desde md); el listado aprovecha el ancho adicional y el reloj conserva 350 px. Cambia a dos columnas en lg; navegación compacta bajo 480px.
 
 Catálogo navegable: `/design-system`, con temas, botones, prioridades, etiquetas y estados.
 
 ### Button
 
-Propósito: acciones principales, secundarias y destructivas. Import: `@/components/ui/button`. Props: atributos nativos, `ref`, `variant="primary" | "secondary" | "destructive"`, `loading` y `disabled`. Default: primary; hover, foco visible, disabled y loading. La variante destructiva usa `--error-bg`, `--error-text` y `--error-border` y se reserva para borrar datos tras una confirmación. Loading deshabilita y expone aria-busy. Conserva la semántica nativa de type: declarar submit para formularios y button para acciones. ClassName admite composición de ancho, espacio y distribución; no redefinir colores ni variantes. Debe tener nombre accesible y texto de progreso cuando corresponda.
+Propósito: acciones principales, secundarias y destructivas. Import: `@/components/ui/button`. Props: atributos nativos, `ref`, `variant="primary" | "secondary" | "destructive"`, `size="md" | "sm"`, `loading` y `disabled`. El tamaño `md` conserva la apariencia habitual. `sm` usa la clase oficial `button-compact`: altura mínima de 36 px, padding 6 × 8 px, radio 8 px y texto de 13 px; con puntero táctil aumenta el área mínima a 44 × 44 px. Ejemplo: `<Button size="sm" variant="secondary">Restaurar</Button>`. No reducir padding mediante estilos locales. Default: primary; hover, foco visible, disabled y loading. La variante destructiva usa `--error-bg`, `--error-text` y `--error-border` y se reserva para borrar datos tras una confirmación. Loading deshabilita y expone aria-busy. Conserva la semántica nativa de type: declarar submit para formularios y button para acciones. ClassName admite composición de ancho, espacio y distribución; no redefinir colores ni variantes. Debe tener nombre accesible y texto de progreso cuando corresponda.
 
 ```tsx
 import {Button} from '@/components/ui/button';
@@ -259,9 +259,51 @@ Las paletas viven en `globals.css` mediante `--palette-accent` y `--palette-high
 
 ### Componentes del dominio focus
 
+`TaskCreateDialog` se importa desde `@/modules/focus/components/task-create-dialog`.
+Es la composición del formulario de tarea: recibe título, prioridad, etiquetas y
+sus setters, `create: (event: FormEvent) => Promise<boolean>`, `createTag`, `busy`
+y `onClose`. `TaskList` lo monta al pulsar **Nueva tarea**. Reutiliza `Button`,
+`TagSelector`, tokens y diálogo nativo: foco inicial en título, Escape/cancelación,
+retorno al botón de apertura y desplazamiento vertical en móvil. Conserva el
+borrador al cancelar; bloquea cierre y envío durante el guardado y muestra el
+error dentro del modal. Se cierra solo tras guardar correctamente.
+
+Los filtros de tareas usan chips con icono, nombre y contador; el activo usa
+`--accent`, los demás `--surface-subtle` y `--border`. Permiten navegación con
+flechas, Inicio y Fin. Se distribuyen en dos columnas en móvil y cuatro desde
+`sm`, con altura mínima de 44 px, padding de 8 px y radio de 8 px. El orden es Pendientes, En progreso, Terminadas y Todas; Pendientes es la selección inicial. Los títulos usan 16–18 px y los metadatos 12 px para priorizar el listado.
+
+`TaskList` usa para **Completar** un botón de icono Check de 17 px, padding de 10 px y radio de 8 px, igual que las acciones contiguas. Lo identifica el fondo `--accent-soft`, borde `--accent-border` y texto `--accent-text`; muestra «Completar tarea sin agregar tiempo ni ciclos» al pasar el cursor y conserva el foco visible. Recibe
+`complete: (task: Task) => Promise<void>`. Se oculta en tareas terminadas y se
+deshabilita durante una operación, antes de recuperar la sesión del reloj o si
+la tarea tiene un temporizador abierto. El nombre accesible incluye el título
+de la tarea. En móvil las acciones ocupan una fila propia para conservar la
+legibilidad del título. No se añade una variante al catálogo de botones.
+
 Imports bajo `@/modules/focus/components/`; sus contratos tipados son la fuente de props. `TagChip` en tag-selector recibe tag y children opcionales, conserva el texto y aplica el color del catálogo. Ejemplo: `<TagChip tag={{id:'personal',name:'Personal',color:'#7c3aed'}}/>`. `TagSelector` recibe tags, selected, onChange, onCreate y disabled; permite selección múltiple y creación con nombre/color. Cada fila de una etiqueta existente activa su casilla completa, conserva el control accesible para teclado y muestra foco y estado deshabilitado. `TimerSettingsMenu` recibe settings, onSave y disabled, con diálogo nativo, validaciones y confirmación. `TagEditor` recibe target, tags, onCreate, onSave, onClose y busy, también con diálogo nativo. `FocusTimer` recibe active, title, minutes, seconds, busy, onPause, onFinish y onSwitch: el diálogo ocupa la pantalla, responde a Escape y admite pausa.
 
 Se conserva la apariencia y comportamiento de estas composiciones existentes; no recrearlas como variantes locales. Los listados usan prioridades textuales y etiquetas con nombre, evitando depender solo del color. Se mantienen carga, vacío, error y disabled. Las preferencias de movimiento reducido y el foco visible se aplican globalmente.
+
+### Selección múltiple de tareas
+
+`TaskList` sustituye el indicador de estado izquierdo por un `input type="checkbox"`
+nativo de 16 px, con `accent-[var(--accent)]`, nombre accesible que incluye el título
+y foco visible. El estado continúa escrito en los metadatos de la fila. La casilla
+**Seleccionar todas las visibles** soporta estado indeterminado. Las casillas se
+deshabilitan durante carga, recuperación del reloj y operaciones de guardado.
+
+`TaskBulkActions`, importado desde `@/modules/focus/components/task-bulk-actions`,
+compone la barra contextual con `Button` y `ConfirmDeleteDialog`; no es un componente
+base adicional. Recibe `selected: Task[]`, `busy`, `activeTaskId?`, `onAction` asíncrono
+(`complete`, `restore`, `delete`) y `onClear`. Usa fondo `--accent-soft`, borde
+`--accent-border`, botones primario, secundario y destructivo existentes, y distribuye
+las acciones según el ancho real del panel mediante container queries: desde 560 px de espacio interior, contador, acciones y cierre comparten una fila; debajo, contador y cierre van arriba y las tres acciones en columnas iguales debajo. Usa `Button size="sm"`, etiquetas cortas y un icono X con nombre accesible «Cancelar selección». Muestra los motivos de bloqueo.
+
+`TaskList` recibe `selectionScope` (estado y etiqueta) y `onBulkAction`; mantiene la
+selección local y la limpia al cambiar de ámbito. Los resultados se anuncian mediante
+`role="status"`; los fallos conservan su selección. La confirmación de borrado indica
+la cantidad y la pérdida del tiempo registrado. Ejemplo de selección: marcar dos
+casillas, comprobar «2 seleccionadas» y pulsar **Completar seleccionadas**.
 
 ### Composición de la página de inicio
 
