@@ -2,6 +2,7 @@ import re
 from datetime import datetime, timedelta, timezone
 from uuid import uuid4
 
+import pytest
 from fastapi.testclient import TestClient
 
 from app.core import domain as main
@@ -15,6 +16,37 @@ from tests.database import SessionLocal
 from tests.email_verification import verified_email
 
 HEADERS = {"X-Step-Client": "web"}
+
+
+@pytest.mark.parametrize(
+    "origin, expected_status",
+    [
+        ("http://localhost:3102", 200),
+        ("http://127.0.0.1:3102", 200),
+        ("http://127.0.0.1:3103", 403),
+        ("https://evil.example", 403),
+        ("http://127.0.0.1.evil.example:3102", 403),
+    ],
+)
+def test_login_from_explicitly_allowed_origins(client, monkeypatch, origin, expected_status):
+    monkeypatch.setattr(settings, "app_origin", "http://localhost:3102")
+    monkeypatch.setattr(settings, "cors_origins", " http://127.0.0.1:3102 , ")
+    response = client.post(
+        "/api/v1/auth/login",
+        json={"email": "test@example.test", "password": "A-test-password-2026"},
+        headers={"Origin": origin},
+    )
+    assert response.status_code == expected_status
+
+
+def test_allowed_origin_still_requires_client_header(client, monkeypatch):
+    monkeypatch.setattr(settings, "cors_origins", "http://127.0.0.1:3102")
+    response = client.post(
+        "/api/v1/auth/login",
+        json={"email": "test@example.test", "password": "A-test-password-2026"},
+        headers={"Origin": "http://127.0.0.1:3102", "X-Step-Client": ""},
+    )
+    assert response.status_code == 403
 
 
 def signup(client, username="seconduser"):
@@ -65,6 +97,7 @@ def test_private_tasks_routines_labels_and_statistics(client):
         for action in [
             {"tag_ids": []},
             {"action": "restore"},
+            {"action": "complete"},
             {"action": "start"},
             {"action": "interrupt", "seconds": 10, "operation_id": str(uuid4())},
         ]:

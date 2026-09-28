@@ -22,7 +22,7 @@ services:
     environment:
       DATABASE_URL: postgresql+psycopg://${POSTGRES_USER:-pomodoro}:${POSTGRES_PASSWORD:?Configura
         POSTGRES_PASSWORD}@db:5432/${POSTGRES_DB:-pomodoro}
-      CORS_ORIGINS: http://localhost:${FRONTEND_PORT:-3102}
+      CORS_ORIGINS: http://localhost:${FRONTEND_PORT:-3102},http://127.0.0.1:${FRONTEND_PORT:-3102}
       APP_TIMEZONE: America/Bogota
       APP_ORIGIN: http://localhost:${FRONTEND_PORT:-3102}
       INITIAL_SETUP_TOKEN: ${INITIAL_SETUP_TOKEN:?Configura INITIAL_SETUP_TOKEN en

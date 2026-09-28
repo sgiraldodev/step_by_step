@@ -138,6 +138,16 @@ Respuesta estándar:
 
 Las respuestas exitosas deben ser REST directas y evitar envoltorios genéricos innecesarios.
 
+## Finalización manual de tareas puntuales
+
+`PATCH /api/v1/tasks/{id}` acepta `{"action":"complete"}`. Marca la tarea del
+propietario como `Terminada` sin crear recibos de trabajo, sumar ciclos ni alterar
+el tiempo histórico. Repetir la acción conserva el resultado. No acepta campos
+de edición ni de registro de tiempo; las rutinas mantienen su acción `check`.
+La interfaz bloquea esta acción cuando tiene un temporizador abierto para esa
+tarea. El reloj es local al navegador y no se sincroniza entre dispositivos.
+`restore` permite devolverla a pendiente conservando su historial.
+
 ## Errores
 
 Formato recomendado:

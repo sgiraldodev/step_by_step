@@ -51,9 +51,14 @@ async def browser_protection_and_tracing(request: Request, call_next):
     request.state.request_id = request_id
     start = perf_counter()
     origin = request.headers.get("origin")
+    allowed_origins = {
+        value.strip().rstrip("/")
+        for value in settings.cors_origins.split(",")
+        if value.strip()
+    } | {settings.app_origin.rstrip("/")}
     if request.method in {"POST", "PUT", "DELETE", "PATCH"} and (
         request.headers.get("x-step-client") != "web"
-        or (origin and origin.rstrip("/") != settings.app_origin.rstrip("/"))
+        or (origin and origin.rstrip("/") not in allowed_origins)
     ):
         response = JSONResponse(
             {"detail": {"code": "ACCESS_DENIED", "message": "Solicitud no permitida."}},

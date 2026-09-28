@@ -13,8 +13,9 @@ test('la aplicación migrada conserva tareas, enfoque, rutinas y estadísticas',
   await expect(
     page.getByText('Te damos la bienvenida, Persona de prueba.', { exact: true }),
   ).toBeVisible();
+  await page.getByRole('button', { name: 'Nueva tarea', exact: true }).click();
   await page.getByLabel('Título de la tarea').fill(`Tarea de validación ${username}`);
-  await page.getByRole('button', { name: 'Agregar', exact: true }).click();
+  await page.getByRole('button', { name: 'Crear tarea', exact: true }).click();
   await expect(page.getByText(`Tarea de validación ${username}`, { exact: true })).toBeVisible();
   await page
     .getByRole('button', { name: new RegExp(`Iniciar.*Tarea de validación ${username}`) })

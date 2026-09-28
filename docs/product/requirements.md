@@ -6,7 +6,7 @@
 |---|---|---|
 | RF-001 | Cuenta privada | Registro con nombre personal y correo único; acceso y recuperación exclusivamente por correo, sesiones opacas HttpOnly y aislamiento por propietario. El nombre admite espacios y no debe ser único. |
 | RF-002 | Recuperación de acceso | Código personal rotativo y correo opcional con enlace de un uso y 30 minutos de vigencia; se revocan sesiones al restablecer. |
-| RF-003 | Tareas y prioridades | Crear y editar títulos, prioridades Baja/Media/Alta/Urgente y etiquetas; conservar estados y ciclos. |
+| RF-003 | Tareas y prioridades | Crear y editar títulos, prioridades Baja/Media/Alta/Urgente y etiquetas; completar manualmente sin añadir tiempo ni ciclos y conservar el esfuerzo anterior. |
 | RF-004 | Temporizador | Trabajo/descanso configurables, pausa/reanudación, persistencia por usuario y modo de enfoque. |
 | RF-005 | Resolución idempotente | Cada UUID de operación registra un solo ciclo y rechaza reutilización con datos diferentes. |
 | RF-006 | Cambio y restauración | Interrumpir guarda segundos efectivos sin completar ni sumar ciclos; restaurar conserva historial. |
